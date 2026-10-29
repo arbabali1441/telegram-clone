@@ -1,4 +1,4 @@
-const express = require("http");
+const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
 const sqlite3 = require('sqlite3').verbose();
@@ -11,10 +11,8 @@ app.use(express.json({ limit: '50mb' }));
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
 
-// Initialize SQLite Database
 const db = new sqlite3.Database('./telegram.db', (err) => {
-  if (err) console.error('Database opening error: ', err.message);
-  else console.log('Connected to SQLite Database.');
+  if (err) console.error('Database error: ', err.message);
 });
 
 db.run(`CREATE TABLE IF NOT EXISTS messages (
@@ -35,12 +33,12 @@ db.run(`CREATE TABLE IF NOT EXISTS messages (
 )`);
 
 io.on("connection", (socket) => {
-  console.log("User connected:", socket.id);
+  console.log("Client connected:", socket.id);
 
   socket.on("join_room", (room) => {
     socket.join(room);
     db.all(`SELECT * FROM messages WHERE room = ?`, [room], (err, rows) => {
-      if (!err) {
+      if (!err && rows) {
         const history = rows.map(r => ({
           ...r,
           reactions: r.reactions ? JSON.parse(r.reactions) : {},
@@ -48,17 +46,26 @@ io.on("connection", (socket) => {
           pollData: r.pollData ? JSON.parse(r.pollData) : null
         }));
         socket.emit("load_history", history);
+      } else {
+        socket.emit("load_history", []);
       }
     });
   });
 
   socket.on("send_message", (data) => {
+    if (!data || !data.room) return;
     const { id, room, sender, text, image, audio, fileData, fileName, pinned, reactions, replyTo, forwardedFrom, pollData, time } = data;
-    const stmt = db.prepare(`INSERT OR REPLACE INTO messages VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
-    stmt.run(id, room, sender, text, image, audio, fileData, fileName, pinned, JSON.stringify(reactions || {}), JSON.stringify(replyTo || null), forwardedFrom || null, JSON.stringify(pollData || null), time, (err) => {
-      if (!err) io.to(room).emit("receive_message", data);
-    });
-    stmt.finalize();
+    
+    db.run(`INSERT OR REPLACE INTO messages VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [id, room, sender, text, image, audio, fileData, fileName, pinned || 0, JSON.stringify(reactions || {}), JSON.stringify(replyTo || null), forwardedFrom || null, JSON.stringify(pollData || null), time],
+      (err) => {
+        if (!err) {
+          io.to(room).emit("receive_message", data);
+        } else {
+          console.error("DB Insert error:", err);
+        }
+      }
+    );
   });
 
   socket.on("vote_poll", ({ messageId, optionIndex, room }) => {
@@ -111,7 +118,7 @@ io.on("connection", (socket) => {
   socket.on("typing", ({ room }) => socket.to(room).emit("display_typing", { room }));
   socket.on("stop_typing", ({ room }) => socket.to(room).emit("hide_typing", { room }));
 
-  socket.on("disconnect", () => console.log("User disconnected:", socket.id));
+  socket.on("disconnect", () => {});
 });
 
-server.listen(5000, () => console.log("Server running on port 5000 with SQLite storage."));
+server.listen(5000, () => console.log("Server running on port 5000"));
