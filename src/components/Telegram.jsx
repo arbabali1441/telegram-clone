@@ -15,15 +15,18 @@ export default function Telegram() {
   const [pollQuestion, setPollQuestion] = useState("");
   const [pollOptions, setPollOptions] = useState(["", ""]);
   const [userStatus, setUserStatus] = useState("Online");
+  const [typingUser, setTypingUser] = useState("");
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const chatEndRef = useRef(null);
   const [activeChat, setActiveChat] = useState("Saved Messages");
   const [rooms, setRooms] = useState(["Saved Messages", "Global Community", "Tech Talk"]);
   const [searchQuery, setSearchQuery] = useState("");
+  const emojis = ["👍", "❤️", "🔥", "😂", "👏"];
 
   useEffect(() => {
     socket.emit("join_room", activeChat);
+    setTypingUser("");
     socket.on("load_history", (h) => setMessages(h));
     socket.on("receive_message", (d) => {
       if (d.room === activeChat) setMessages((p) => [...p, d]);
@@ -38,21 +41,44 @@ export default function Telegram() {
         p.map((m) => (m.id === d.messageId ? { ...m, pinned: d.pinned } : m))
       );
     });
+    socket.on("update_reaction", (d) => {
+      setMessages((p) =>
+        p.map((m) => (m.id === d.messageId ? { ...m, reactions: d.reactions } : m))
+      );
+    });
     socket.on("remove_message", (d) => {
       setMessages((p) => p.filter((m) => m.id !== d.messageId));
+    });
+    socket.on("display_typing", (d) => {
+      if (d.room === activeChat) setTypingUser("Someone is typing...");
+    });
+    socket.on("hide_typing", (d) => {
+      if (d.room === activeChat) setTypingUser("");
     });
     return () => {
       socket.off("load_history");
       socket.off("receive_message");
       socket.off("update_poll");
       socket.off("update_pin");
+      socket.off("update_reaction");
       socket.off("remove_message");
+      socket.off("display_typing");
+      socket.off("hide_typing");
     };
   }, [activeChat]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, typingUser]);
+
+  const handleTextChange = (e) => {
+    setText(e.target.value);
+    socket.emit("typing", { room: activeChat });
+    clearTimeout(window.tTimer);
+    window.tTimer = setTimeout(() => {
+      socket.emit("stop_typing", { room: activeChat });
+    }, 1000);
+  };
 
   const startRecording = async () => {
     try {
@@ -104,6 +130,7 @@ export default function Telegram() {
   const handleSend = (e) => {
     e.preventDefault();
     if (!text.trim() && !image && !audioUrl && !fileData) return;
+    socket.emit("stop_typing", { room: activeChat });
     socket.emit("send_message", {
       id: Date.now().toString(),
       sender: "You",
@@ -113,6 +140,7 @@ export default function Telegram() {
       fileData,
       fileName,
       pinned: 0,
+      reactions: {},
       time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       room: activeChat,
     });
@@ -134,6 +162,7 @@ export default function Telegram() {
       text: "📊 Poll",
       pollData,
       pinned: 0,
+      reactions: {},
       time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       room: activeChat,
     });
@@ -155,6 +184,10 @@ export default function Telegram() {
     if (window.confirm("Delete this message?")) {
       socket.emit("delete_message", { messageId, room: activeChat });
     }
+  };
+
+  const handleReaction = (messageId, emoji) => {
+    socket.emit("add_reaction", { messageId, emoji, room: activeChat });
   };
 
   const pinnedMessage = messages.find((m) => m.pinned === 1);
@@ -186,7 +219,10 @@ export default function Telegram() {
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
         <div style={{ padding: "15px", background: "#17212b", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div style={{ fontWeight: "600" }}>{activeChat === "Saved Messages" ? "⭐ Saved Messages (Cloud Storage)" : activeChat}</div>
+          <div>
+            <div style={{ fontWeight: "600" }}>{activeChat === "Saved Messages" ? "⭐ Saved Messages (Cloud Storage)" : activeChat}</div>
+            <div style={{ fontSize: "12px", color: "#6c7883" }}>{typingUser || "online"}</div>
+          </div>
           <button onClick={() => setShowPollModal(true)} style={{ background: "#5288c1", border: "none", padding: "6px 12px", borderRadius: "6px", color: "#fff", cursor: "pointer" }}>
             Create Poll
           </button>
@@ -202,9 +238,9 @@ export default function Telegram() {
           </div>
         )}
 
-        <div style={{ flex: 1, padding: "20px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "10px" }}>
+        <div style={{ flex: 1, padding: "20px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "12px" }}>
           {messages.map((m) => (
-            <div key={m.id} style={{ alignSelf: "flex-end", background: "#2b5278", padding: "10px", borderRadius: "8px", maxWidth: "60%", position: "relative" }}>
+            <div key={m.id} style={{ alignSelf: "flex-end", background: "#2b5278", padding: "10px 14px", borderRadius: "12px", maxWidth: "60%", position: "relative" }}>
               {m.pollData ? (
                 <div>
                   <div style={{ fontWeight: "600", marginBottom: "6px" }}>📊 {m.pollData.question}</div>
@@ -236,9 +272,29 @@ export default function Telegram() {
               ) : (
                 <div>{m.text}</div>
               )}
-              <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "6px", fontSize: "11px" }}>
-                <span onClick={() => handlePin(m.id, m.pinned)} style={{ cursor: "pointer" }} title="Pin">📌</span>
-                <span onClick={() => handleDelete(m.id)} style={{ cursor: "pointer", color: "#ff5252" }} title="Delete">🗑️</span>
+
+              <div style={{ display: "flex", gap: "4px", flexWrap: "wrap", marginTop: "4px" }}>
+                {m.reactions && Object.entries(m.reactions).map(([emoji, count]) => (
+                  count > 0 && (
+                    <span key={emoji} onClick={() => handleReaction(m.id, emoji)} style={{ fontSize: "11px", background: "rgba(0,0,0,0.3)", padding: "2px 6px", borderRadius: "10px", cursor: "pointer" }}>
+                      {emoji} {count}
+                    </span>
+                  )
+                ))}
+              </div>
+
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "6px", fontSize: "11px", color: "#a2b5c7" }}>
+                <span>{m.time}</span>
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <span onClick={() => handlePin(m.id, m.pinned)} style={{ cursor: "pointer" }} title="Pin">📌</span>
+                  <span onClick={() => handleDelete(m.id)} style={{ cursor: "pointer", color: "#ff5252" }} title="Delete">🗑️</span>
+                </div>
+              </div>
+
+              <div style={{ display: "flex", gap: "4px", marginTop: "4px" }}>
+                {emojis.map((emoji) => (
+                  <span key={emoji} onClick={() => handleReaction(m.id, emoji)} style={{ cursor: "pointer", fontSize: "13px" }} title={emoji}>{emoji}</span>
+                ))}
               </div>
             </div>
           ))}
@@ -315,7 +371,7 @@ export default function Telegram() {
             type="text"
             placeholder="Write a message..."
             value={text}
-            onChange={(e) => setText(e.target.value)}
+            onChange={handleTextChange}
             style={{ flex: 1, padding: "10px", background: "#242f3d", border: "none", borderRadius: "8px", color: "#fff", outline: "none" }}
           />
           <button type="submit" style={{ padding: "0 20px", background: "#5288c1", border: "none", borderRadius: "8px", color: "#fff", cursor: "pointer" }}>Send</button>
