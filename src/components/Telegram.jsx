@@ -12,7 +12,8 @@ export default function Telegram() {
   const [showPollModal, setShowPollModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showNewChatModal, setShowNewChatModal] = useState(false);
-  const [newRoomName, setNewRoomName] = useState("");
+  const [showChatSearch, setShowChatSearch] = useState(false);
+  const [chatSearchQuery, setChatSearchQuery] = useState("");
   const [pollQuestion, setPollQuestion] = useState("");
   const [pollOptions, setPollOptions] = useState(["", ""]);
   const [myUsername, setMyUsername] = useState("You");
@@ -30,7 +31,7 @@ export default function Telegram() {
 
   useEffect(() => {
     socket.emit("join_room", activeChat || "Saved Messages");
-    setTypingUser(""); setReplyingTo(null); setForwardingMessage(null);
+    setTypingUser(""); setReplyingTo(null); setForwardingMessage(null); setShowChatSearch(false); setChatSearchQuery("");
     socket.on("load_history", (h) => setMessages(h || []));
     socket.on("receive_message", (d) => { if (d && d.room === activeChat) setMessages((p) => [...p, d]); });
     socket.on("update_poll", (d) => { if(d) setMessages((p) => p.map((m) => m.id === d.messageId ? { ...m, pollData: d.pollData } : m)); });
@@ -114,6 +115,11 @@ export default function Telegram() {
   };
 
   const pinnedMessage = messages && messages.find ? messages.find((m) => m && m.pinned === 1) : null;
+  const filteredMessages = messages && messages.filter ? messages.filter(m => {
+    if (!chatSearchQuery.trim()) return true;
+    const q = chatSearchQuery.toLowerCase();
+    return (m.text && m.text.toLowerCase().includes(q)) || (m.fileName && m.fileName.toLowerCase().includes(q)) || (m.sender && m.sender.toLowerCase().includes(q));
+  }) : [];
 
   return (
     <div style={{ display: "flex", height: "100vh", backgroundColor: "#0e1621", color: "#fff", fontFamily: "sans-serif", position: "relative" }}>
@@ -181,8 +187,18 @@ export default function Telegram() {
             <div style={{ fontWeight: "600" }}>{activeChat === "Saved Messages" ? "⭐ Saved Messages (Cloud Storage)" : activeChat}</div>
             <div style={{ fontSize: "12px", color: "#6c7883" }}>{typingUser || "active chat"}</div>
           </div>
-          <button onClick={() => setShowPollModal(true)} style={{ background: "#5288c1", border: "none", padding: "6px 12px", borderRadius: "6px", color: "#fff", cursor: "pointer" }}>Create Poll</button>
+          <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+            <button onClick={() => { setShowChatSearch(!showChatSearch); setChatSearchQuery(""); }} style={{ background: "#242f3d", border: "none", padding: "6px 10px", borderRadius: "6px", color: "#fff", cursor: "pointer", fontSize: "13px" }} title="Search Messages">🔍</button>
+            <button onClick={() => setShowPollModal(true)} style={{ background: "#5288c1", border: "none", padding: "6px 12px", borderRadius: "6px", color: "#fff", cursor: "pointer" }}>Create Poll</button>
+          </div>
         </div>
+
+        {showChatSearch && (
+          <div style={{ background: "#17212b", padding: "10px 15px", borderBottom: "1px solid #242f3d", display: "flex", gap: "10px", alignItems: "center" }}>
+            <input type="text" placeholder="Search in current chat..." value={chatSearchQuery} onChange={(e) => setChatSearchQuery(e.target.value)} style={{ flex: 1, padding: "8px 12px", background: "#242f3d", border: "none", borderRadius: "6px", color: "#fff", outline: "none", fontSize: "13px" }} />
+            <button onClick={() => { setShowChatSearch(false); setChatSearchQuery(""); }} style={{ background: "transparent", border: "none", color: "#ff5252", cursor: "pointer", fontSize: "14px" }}>✕</button>
+          </div>
+        )}
 
         {pinnedMessage && (
           <div style={{ background: "#17212b", padding: "8px 16px", borderBottom: "1px solid #242f3d", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "13px" }}>
@@ -195,7 +211,7 @@ export default function Telegram() {
         )}
 
         <div style={{ flex: 1, padding: "20px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "12px" }}>
-          {messages && messages.map && messages.map((m) => (
+          {filteredMessages && filteredMessages.map && filteredMessages.map((m) => (
             <div key={m.id} style={{ alignSelf: m.sender === myUsername ? "flex-end" : "flex-start", background: m.sender === myUsername ? "#2b5278" : "#18222d", padding: "10px 14px", borderRadius: "12px", maxWidth: "60%", position: "relative" }}>
               <div style={{ fontSize: "11px", color: "#5288c1", fontWeight: "600", marginBottom: "2px" }}>{m.sender}</div>
               {m.forwardedFrom && (<div style={{ fontSize: "11px", color: "#a2b5c7", marginBottom: "4px" }}>↗️ Forwarded from {m.forwardedFrom}</div>)}
