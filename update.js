@@ -230,4 +230,4 @@ export default function Telegram() {
 `;
 
 fs.writeFileSync("src/components/Telegram.jsx", code);
-console.log("Telegram.jsx updated with voice notes.");
+console.log("Telegram.jsx written successfully.");
