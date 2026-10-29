@@ -142,7 +142,7 @@ export default function Telegram() {
           <div style={{ width: callType === "video" ? "540px" : "0px", height: callType === "video" ? "340px" : "0px", background: "#17212b", borderRadius: "16px", marginBottom: "30px", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", border: "1px solid #242f3d", boxShadow: "0 10px 30px rgba(0,0,0,0.5)" }}>
             {callType === "video" ? "Camera Stream Active" : ""}
           </div>
-          <button onClick={() => setInCall(false)} style={{ background: "#ff3b30", border: "none", padding: "12px 30px", borderRadius: "30px", color: "#fff", fontWeight: "600", cursor: "pointer", fontSize: "15px", boxShadow: "0 4px 15px rgba(255,59,48,0.4)", display: "flex", alignItems: "center", gap: "8px" }}>End Call</button>
+          <button onClick={() => setInCall(false)} style={{ background: "#ff3b30", border: "none", padding: "12px 30px", borderRadius: "30px", color: "#fff", fontWeight: "600", cursor: "pointer", fontSize: "15px", boxShadow: "0 4px 15px rgba(255,59,48,0.4)" }}>End Call</button>
         </div>
       )}
 
@@ -198,17 +198,13 @@ export default function Telegram() {
             </div>
           </div>
           <div style={{ display: "flex", gap: "8px" }}>
-            <button onClick={() => setIsDarkMode(!isDarkMode)} style={{ background: theme.inputBg, border: "none", width: "34px", height: "34px", borderRadius: "50%", color: theme.text, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }} title="Toggle Theme">
-              {isDarkMode ? "☀️" : "🌙"}
-            </button>
-            <button onClick={() => setShowProfileModal(true)} style={{ background: theme.inputBg, border: "none", width: "34px", height: "34px", borderRadius: "50%", color: theme.text, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }} title="Settings">
-              ⚙️
-            </button>
+            <button onClick={() => setIsDarkMode(!isDarkMode)} style={{ background: theme.inputBg, border: "none", width: "34px", height: "34px", borderRadius: "50%", color: theme.text, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px" }} title="Toggle Theme">{isDarkMode ? "☀️" : "🌙"}</button>
+            <button onClick={() => setShowProfileModal(true)} style={{ background: theme.inputBg, border: "none", width: "34px", height: "34px", borderRadius: "50%", color: theme.text, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px" }} title="Settings">⚙️</button>
           </div>
         </div>
         <div style={{ padding: "12px 16px", display: "flex", gap: "8px" }}>
           <input type="text" placeholder="Search chats..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} style={{ flex: 1, padding: "10px 14px", background: theme.inputBg, border: "none", borderRadius: "20px", color: theme.text, outline: "none", fontSize: "14px" }} />
-          <button onClick={() => setShowNewChatModal(true)} style={{ background: theme.accent, border: "none", width: "38px", height: "38px", borderRadius: "50%", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px", fontWeight: "bold" }} title="New Chat">+</button>
+          <button onClick={() => setShowNewChatModal(true)} style={{ background: theme.accent, border: "none", width: "38px", height: "38px", borderRadius: "50%", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px", fontWeight: "bold", boxShadow: "0 2px 8px rgba(0,0,0,0.2)" }} title="New Chat">+</button>
         </div>
         <div style={{ flex: 1, overflowY: "auto", padding: "4px 8px" }}>
           {rooms.filter(r => r.toLowerCase().includes(searchQuery.toLowerCase())).map((r) => (
@@ -232,9 +228,9 @@ export default function Telegram() {
             </div>
           </div>
           <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-            <button onClick={() => { setCallType("voice"); setInCall(true); }} style={{ background: theme.inputBg, border: "none", width: "36px", height: "36px", borderRadius: "50%", color: theme.text, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }} title="Voice Call">📞</button>
-            <button onClick={() => { setCallType("video"); setInCall(true); }} style={{ background: theme.inputBg, border: "none", width: "36px", height: "36px", borderRadius: "50%", color: theme.text, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }} title="Video Call">📹</button>
-            <button onClick={() => { setShowChatSearch(!showChatSearch); setChatSearchQuery(""); }} style={{ background: theme.inputBg, border: "none", width: "36px", height: "36px", borderRadius: "50%", color: theme.text, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }} title="Search Messages">🔍</button>
+            <button onClick={() => { setCallType("voice"); setInCall(true); }} style={{ background: theme.inputBg, border: "none", width: "36px", height: "36px", borderRadius: "50%", color: theme.text, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px" }} title="Voice Call">📞</button>
+            <button onClick={() => { setCallType("video"); setInCall(true); }} style={{ background: theme.inputBg, border: "none", width: "36px", height: "36px", borderRadius: "50%", color: theme.text, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px" }} title="Video Call">📹</button>
+            <button onClick={() => { setShowChatSearch(!showChatSearch); setChatSearchQuery(""); }} style={{ background: theme.inputBg, border: "none", width: "36px", height: "36px", borderRadius: "50%", color: theme.text, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px" }} title="Search Messages">🔍</button>
             <button onClick={() => setShowPollModal(true)} style={{ background: theme.accent, border: "none", padding: "8px 16px", borderRadius: "20px", color: "#fff", cursor: "pointer", fontWeight: "600", fontSize: "13px" }}>Create Poll</button>
           </div>
         </div>
@@ -326,24 +322,24 @@ export default function Telegram() {
 
         {/* Pro Input Bar */}
         <form onSubmit={handleSend} style={{ padding: "12px 24px", background: theme.panelBg, borderTop: "1px solid " + theme.border, display: "flex", gap: "12px", alignItems: "center" }}>
-          <label style={{ cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", width: "38px", height: "38px", borderRadius: "50%", background: theme.inputBg, color: theme.iconColor }} title="Attach Image">
+          <label style={{ cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", width: "38px", height: "38px", borderRadius: "50%", background: theme.inputBg, fontSize: "18px" }} title="Attach Image">
             📎
             <input type="file" accept="image/*" onChange={(e) => { const f = e.target.files[0]; if(f){ const r = new FileReader(); r.onloadend = () => setImage(r.result); r.readAsDataURL(f); } }} style={{ display: "none" }} />
           </label>
-          <label style={{ cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", width: "38px", height: "38px", borderRadius: "50%", background: theme.inputBg, color: theme.iconColor }} title="Attach File">
+          <label style={{ cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", width: "38px", height: "38px", borderRadius: "50%", background: theme.inputBg, fontSize: "18px" }} title="Attach File">
             📁
             <input type="file" onChange={(e)=>{ const f = e.target.files[0]; if(f){ setFileName(f.name); const r = new FileReader(); r.onloadend = () => setFileData(r.result); r.readAsDataURL(f); } }} style={{ display: "none" }} />
           </label>
           
           {isRecording ? (
-            <button type="button" onClick={stopRecording} style={{ background: "#ff3b30", border: "none", borderRadius: "50%", width: "38px", height: "38px", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }} title="Stop Recording">⏹️</button>
+            <button type="button" onClick={stopRecording} style={{ background: "#ff3b30", border: "none", borderRadius: "50%", width: "38px", height: "38px", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px" }} title="Stop Recording">⏹️</button>
           ) : (
-            <button type="button" onClick={startRecording} style={{ background: theme.inputBg, border: "none", borderRadius: "50%", width: "38px", height: "38px", color: theme.iconColor, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }} title="Record Voice Note">🎤</button>
+            <button type="button" onClick={startRecording} style={{ background: theme.inputBg, border: "none", borderRadius: "50%", width: "38px", height: "38px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px" }} title="Record Voice Note">🎤</button>
           )}
 
           <input type="text" placeholder="Write a message..." value={text} onChange={handleTextChange} style={{ flex: 1, padding: "12px 18px", background: theme.inputBg, border: "none", borderRadius: "24px", color: theme.text, outline: "none", fontSize: "14px" }} />
           
-          <button type="submit" style={{ background: theme.accent, border: "none", borderRadius: "50%", width: "42px", height: "42px", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 10px rgba(51,144,236,0.3)" }} title="Send Message">Send</button>
+          <button type="submit" style={{ background: theme.accent, border: "none", borderRadius: "24px", padding: "10px 22px", color: "#fff", cursor: "pointer", fontWeight: "600", fontSize: "14px", boxShadow: "0 2px 10px rgba(51,144,236,0.3)" }} title="Send Message">Send</button>
         </form>
       </div>
     </div>
