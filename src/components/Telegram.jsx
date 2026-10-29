@@ -298,11 +298,19 @@ export default function Telegram() {
 
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "6px", fontSize: "11px", color: theme.textMuted, gap: "15px" }}>
                 <span style={{ display: "flex", alignItems: "center", gap: "3px" }}>{m.time} {m.sender === myUsername && <span style={{ color: "#34c759", fontWeight: "bold" }}>✓✓</span>}</span>
-                <div style={{ display: "flex", gap: "10px", opacity: 0.8 }}>
-                  <span onClick={() => setForwardingMessage(m)} style={{ cursor: "pointer" }} title="Forward">↗️</span>
-                  <span onClick={() => socket.emit("pin_message", { messageId: m.id, pinned: m.pinned ? 0 : 1, room: activeChat })} style={{ cursor: "pointer" }} title="Pin">📌</span>
-                  <span onClick={() => setReplyingTo(m)} style={{ cursor: "pointer" }} title="Reply">↩️</span>
-                  <span onClick={() => { if (window.confirm("Delete message?")) socket.emit("delete_message", { messageId: m.id, room: activeChat }); }} style={{ cursor: "pointer", color: "#ff3b30" }} title="Delete">🗑️</span>
+                <div style={{ display: "flex", gap: "10px", opacity: 0.85, alignItems: "center" }}>
+                  <span onClick={() => setForwardingMessage(m)} style={{ cursor: "pointer", display: "inline-flex" }} title="Forward">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 14 20 9 15 4"></polyline><path d="M4 20v-7a4 4 0 0 1 4-4h12"></path></svg>
+                  </span>
+                  <span onClick={() => socket.emit("pin_message", { messageId: m.id, pinned: m.pinned ? 0 : 1, room: activeChat })} style={{ cursor: "pointer", display: "inline-flex" }} title="Pin">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="17" x2="12" y2="22"></line><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"></path></svg>
+                  </span>
+                  <span onClick={() => setReplyingTo(m)} style={{ cursor: "pointer", display: "inline-flex" }} title="Reply">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 14 4 9 9 4"></polyline><path d="M20 20v-7a4 4 0 0 0-4-4H4"></path></svg>
+                  </span>
+                  <span onClick={() => { if (window.confirm("Delete message?")) socket.emit("delete_message", { messageId: m.id, room: activeChat }); }} style={{ cursor: "pointer", color: "#ff3b30", display: "inline-flex" }} title="Delete">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                  </span>
                 </div>
               </div>
               <div style={{ display: "flex", gap: "6px", marginTop: "6px" }}>
