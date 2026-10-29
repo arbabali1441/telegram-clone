@@ -7,6 +7,8 @@ export default function Telegram() {
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
   const [audioUrl, setAudioUrl] = useState(null);
+  const [fileData, setFileData] = useState(null);
+  const [fileName, setFileName] = useState("");
   const [isRecording, setIsRecording] = useState(false);
   const [showPollModal, setShowPollModal] = useState(false);
   const [pollQuestion, setPollQuestion] = useState("");
@@ -30,10 +32,20 @@ export default function Telegram() {
         p.map((m) => (m.id === d.messageId ? { ...m, pollData: d.pollData } : m))
       );
     });
+    socket.on("update_pin", (d) => {
+      setMessages((p) =>
+        p.map((m) => (m.id === d.messageId ? { ...m, pinned: d.pinned } : m))
+      );
+    });
+    socket.on("remove_message", (d) => {
+      setMessages((p) => p.filter((m) => m.id !== d.messageId));
+    });
     return () => {
       socket.off("load_history");
       socket.off("receive_message");
       socket.off("update_poll");
+      socket.off("update_pin");
+      socket.off("remove_message");
     };
   }, [activeChat]);
 
@@ -69,19 +81,34 @@ export default function Telegram() {
     }
   };
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFileName(file.name);
+      const reader = new FileReader();
+      reader.onloadend = () => setFileData(reader.result);
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSend = (e) => {
     e.preventDefault();
-    if (!text.trim() && !audioUrl) return;
+    if (!text.trim() && !audioUrl && !fileData) return;
     socket.emit("send_message", {
       id: Date.now().toString(),
       sender: "You",
       text: text.trim() || null,
       audio: audioUrl,
+      fileData,
+      fileName,
+      pinned: 0,
       time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       room: activeChat,
     });
     setText("");
     setAudioUrl(null);
+    setFileData(null);
+    setFileName("");
   };
 
   const createPoll = (e) => {
@@ -94,6 +121,7 @@ export default function Telegram() {
       sender: "You",
       text: "📊 Poll",
       pollData,
+      pinned: 0,
       time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       room: activeChat,
     });
@@ -105,6 +133,19 @@ export default function Telegram() {
   const handleVote = (messageId, optionIndex) => {
     socket.emit("vote_poll", { messageId, optionIndex, room: activeChat });
   };
+
+  const handlePin = (messageId, currentPinned) => {
+    const newPinned = currentPinned ? 0 : 1;
+    socket.emit("pin_message", { messageId, pinned: newPinned, room: activeChat });
+  };
+
+  const handleDelete = (messageId) => {
+    if (window.confirm("Delete this message?")) {
+      socket.emit("delete_message", { messageId, room: activeChat });
+    }
+  };
+
+  const pinnedMessage = messages.find((m) => m.pinned === 1);
 
   return (
     <div style={{ display: "flex", height: "100vh", backgroundColor: "#0e1621", color: "#fff", fontFamily: "sans-serif" }}>
@@ -139,9 +180,19 @@ export default function Telegram() {
           </button>
         </div>
 
+        {pinnedMessage && (
+          <div style={{ background: "#17212b", padding: "8px 16px", borderBottom: "1px solid #242f3d", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "13px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <span style={{ color: "#5288c1", fontWeight: "bold" }}>📌 Pinned:</span>
+              <span style={{ color: "#a2b5c7" }}>{pinnedMessage.pollData ? pinnedMessage.pollData.question : pinnedMessage.fileName || pinnedMessage.text}</span>
+            </div>
+            <button onClick={() => handlePin(pinnedMessage.id, 1)} style={{ background: "transparent", border: "none", color: "#ff5252", cursor: "pointer", fontSize: "12px" }}>Unpin</button>
+          </div>
+        )}
+
         <div style={{ flex: 1, padding: "20px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "10px" }}>
           {messages.map((m) => (
-            <div key={m.id} style={{ alignSelf: "flex-end", background: "#2b5278", padding: "10px", borderRadius: "8px", maxWidth: "60%" }}>
+            <div key={m.id} style={{ alignSelf: "flex-end", background: "#2b5278", padding: "10px", borderRadius: "8px", maxWidth: "60%", position: "relative" }}>
               {m.pollData ? (
                 <div>
                   <div style={{ fontWeight: "600", marginBottom: "6px" }}>📊 {m.pollData.question}</div>
@@ -160,13 +211,32 @@ export default function Telegram() {
                 </div>
               ) : m.audio ? (
                 <audio controls src={m.audio} style={{ width: "220px" }} />
+              ) : m.fileData ? (
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <span>📄</span>
+                  <div>
+                    <div style={{ fontSize: "13px", fontWeight: "600" }}>{m.fileName}</div>
+                    <a href={m.fileData} download={m.fileName} style={{ fontSize: "11px", color: "#a2b5c7" }}>Download</a>
+                  </div>
+                </div>
               ) : (
                 <div>{m.text}</div>
               )}
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "6px", fontSize: "11px" }}>
+                <span onClick={() => handlePin(m.id, m.pinned)} style={{ cursor: "pointer" }} title="Pin">📌</span>
+                <span onClick={() => handleDelete(m.id)} style={{ cursor: "pointer", color: "#ff5252" }} title="Delete">🗑️</span>
+              </div>
             </div>
           ))}
           <div ref={chatEndRef} />
         </div>
+
+        {fileData && (
+          <div style={{ padding: "10px 15px", background: "#17212b", display: "flex", alignItems: "center", gap: "10px" }}>
+            <span style={{ fontSize: "13px", color: "#a2b5c7" }}>File selected: {fileName}</span>
+            <button onClick={() => { setFileData(null); setFileName(""); }} style={{ background: "transparent", border: "none", color: "#ff5252", cursor: "pointer" }}>Remove</button>
+          </div>
+        )}
 
         {audioUrl && (
           <div style={{ padding: "10px 15px", background: "#17212b", display: "flex", alignItems: "center", gap: "10px" }}>
@@ -207,6 +277,10 @@ export default function Telegram() {
         )}
 
         <form onSubmit={handleSend} style={{ padding: "15px", background: "#17212b", display: "flex", gap: "10px", alignItems: "center" }}>
+          <label style={{ cursor: "pointer", fontSize: "20px", color: "#a2b5c7" }} title="Attach File">
+            📁
+            <input type="file" onChange={handleFileChange} style={{ display: "none" }} />
+          </label>
           {isRecording ? (
             <button type="button" onClick={stopRecording} style={{ background: "#ff5252", border: "none", borderRadius: "50%", width: "40px", height: "40px", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }} title="Stop Recording">⏹️</button>
           ) : (
