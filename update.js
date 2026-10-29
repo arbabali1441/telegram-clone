@@ -19,7 +19,7 @@ export default function Telegram() {
   const [newRoomName, setNewRoomName] = useState("");
   const [pollQuestion, setPollQuestion] = useState("");
   const [pollOptions, setPollOptions] = useState(["", ""]);
-  const [myUsername, setMyUsername] = useState("Coach Ali");
+  const [myUsername, setMyUsername] = useState("Alex Morgan");
   const [userStatus, setUserStatus] = useState("Online");
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [typingUser, setTypingUser] = useState("");
@@ -32,7 +32,7 @@ export default function Telegram() {
   const audioChunksRef = useRef([]);
   const chatEndRef = useRef(null);
   const [activeChat, setActiveChat] = useState("Saved Messages");
-  const [rooms, setRooms] = useState(["Saved Messages", "Global Community", "Tech Talk"]);
+  const [rooms, setRooms] = useState(["Saved Messages", "General Lounge", "Engineering Hub"]);
   const [searchQuery, setSearchQuery] = useState("");
   const emojis = ["👍", "❤️", "🔥", "😂", "👏", "🎉"];
 
@@ -378,4 +378,4 @@ export default function Telegram() {
 }`;
 
 fs.writeFileSync("src/components/Telegram.jsx", clientCode);
-console.log("Updated message action buttons to pro SVG icons.");
+console.log("Updated identity to Alex Morgan and general chat rooms.");
