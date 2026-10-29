@@ -11,6 +11,8 @@ export default function Telegram() {
   const [isRecording, setIsRecording] = useState(false);
   const [showPollModal, setShowPollModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showNewChatModal, setShowNewChatModal] = useState(false);
+  const [newRoomName, setNewRoomName] = useState("");
   const [pollQuestion, setPollQuestion] = useState("");
   const [pollOptions, setPollOptions] = useState(["", ""]);
   const [myUsername, setMyUsername] = useState("You");
@@ -65,6 +67,18 @@ export default function Telegram() {
   };
 
   const stopRecording = () => { if (mediaRecorderRef.current) { mediaRecorderRef.current.stop(); setIsRecording(false); } };
+
+  const handleCreateRoom = (e) => {
+    e.preventDefault();
+    if (!newRoomName.trim()) return;
+    const roomName = newRoomName.trim();
+    if (!rooms.includes(roomName)) {
+      setRooms([...rooms, roomName]);
+    }
+    setActiveChat(roomName);
+    setNewRoomName("");
+    setShowNewChatModal(false);
+  };
 
   const handleSend = (e) => {
     e.preventDefault();
@@ -121,6 +135,17 @@ export default function Telegram() {
         </div>
       )}
 
+      {showNewChatModal && (
+        <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", background: "rgba(0,0,0,0.7)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <form onSubmit={handleCreateRoom} style={{ background: "#17212b", padding: "25px", borderRadius: "12px", width: "320px", border: "1px solid #242f3d" }}>
+            <div style={{ fontSize: "16px", fontWeight: "600", marginBottom: "15px", color: "#5288c1" }}>💬 New Chat / Room</div>
+            <input type="text" placeholder="Enter room or chat name..." value={newRoomName} onChange={(e) => setNewRoomName(e.target.value)} style={{ width: "100%", padding: "10px", background: "#242f3d", border: "none", borderRadius: "8px", color: "#fff", marginBottom: "15px", outline: "none" }} />
+            <button type="submit" style={{ width: "100%", padding: "10px", background: "#5288c1", border: "none", borderRadius: "8px", color: "#fff", fontWeight: "600", cursor: "pointer", marginBottom: "8px" }}>Create / Join</button>
+            <button type="button" onClick={() => setShowNewChatModal(false)} style={{ width: "100%", padding: "10px", background: "#ff5252", border: "none", borderRadius: "8px", color: "#fff", fontWeight: "600", cursor: "pointer" }}>Cancel</button>
+          </form>
+        </div>
+      )}
+
       {forwardingMessage && (
         <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", background: "rgba(0,0,0,0.7)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div style={{ background: "#17212b", padding: "25px", borderRadius: "12px", width: "350px", border: "1px solid #242f3d" }}>
@@ -141,7 +166,10 @@ export default function Telegram() {
           </div>
           <button onClick={() => setShowProfileModal(true)} style={{ background: "#242f3d", border: "none", padding: "6px 10px", borderRadius: "6px", color: "#fff", cursor: "pointer", fontSize: "12px" }}>⚙️ Settings</button>
         </div>
-        <div style={{ padding: "12px 15px" }}><input type="text" placeholder="Search rooms..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} style={{ width: "100%", padding: "10px", background: "#242f3d", border: "none", borderRadius: "8px", color: "#fff", outline: "none" }} /></div>
+        <div style={{ padding: "12px 15px", display: "flex", gap: "8px" }}>
+          <input type="text" placeholder="Search rooms..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} style={{ flex: 1, padding: "10px", background: "#242f3d", border: "none", borderRadius: "8px", color: "#fff", outline: "none" }} />
+          <button onClick={() => setShowNewChatModal(true)} style={{ background: "#5288c1", border: "none", padding: "0 12px", borderRadius: "8px", color: "#fff", cursor: "pointer", fontSize: "16px", fontWeight: "bold" }} title="New Chat">+</button>
+        </div>
         <div style={{ flex: 1, overflowY: "auto" }}>
           {rooms.filter(r => r.toLowerCase().includes(searchQuery.toLowerCase())).map((r) => (<div key={r} onClick={() => setActiveChat(r)} style={{ padding: "12px 15px", cursor: "pointer", background: activeChat === r ? "#2b5278" : "transparent" }}>{r === "Saved Messages" ? "⭐ Saved Messages" : r}</div>))}
         </div>
