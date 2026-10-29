@@ -8,6 +8,7 @@ const socket = io("http://localhost:5000");
 export default function Telegram() {
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
+  const [image, setImage] = useState(null);
   const [audioUrl, setAudioUrl] = useState(null);
   const [fileData, setFileData] = useState(null);
   const [fileName, setFileName] = useState("");
@@ -83,6 +84,15 @@ export default function Telegram() {
     }
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => setImage(reader.result);
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -95,11 +105,12 @@ export default function Telegram() {
 
   const handleSend = (e) => {
     e.preventDefault();
-    if (!text.trim() && !audioUrl && !fileData) return;
+    if (!text.trim() && !image && !audioUrl && !fileData) return;
     socket.emit("send_message", {
       id: Date.now().toString(),
       sender: "You",
       text: text.trim() || null,
+      image,
       audio: audioUrl,
       fileData,
       fileName,
@@ -108,6 +119,7 @@ export default function Telegram() {
       room: activeChat,
     });
     setText("");
+    setImage(null);
     setAudioUrl(null);
     setFileData(null);
     setFileName("");
@@ -211,6 +223,8 @@ export default function Telegram() {
                     );
                   })}
                 </div>
+              ) : m.image ? (
+                <img src={m.image} alt="upload" style={{ maxWidth: "100%", borderRadius: "6px", marginBottom: "4px" }} />
               ) : m.audio ? (
                 <audio controls src={m.audio} style={{ width: "220px" }} />
               ) : m.fileData ? (
@@ -232,6 +246,13 @@ export default function Telegram() {
           ))}
           <div ref={chatEndRef} />
         </div>
+
+        {image && (
+          <div style={{ padding: "10px 15px", background: "#17212b", display: "flex", alignItems: "center", gap: "10px" }}>
+            <span style={{ fontSize: "13px", color: "#a2b5c7" }}>Image selected</span>
+            <button onClick={() => setImage(null)} style={{ background: "transparent", border: "none", color: "#ff5252", cursor: "pointer" }}>Remove</button>
+          </div>
+        )}
 
         {fileData && (
           <div style={{ padding: "10px 15px", background: "#17212b", display: "flex", alignItems: "center", gap: "10px" }}>
@@ -279,6 +300,10 @@ export default function Telegram() {
         )}
 
         <form onSubmit={handleSend} style={{ padding: "15px", background: "#17212b", display: "flex", gap: "10px", alignItems: "center" }}>
+          <label style={{ cursor: "pointer", fontSize: "20px", color: "#a2b5c7" }} title="Attach Image">
+            📎
+            <input type="file" accept="image/*" onChange={handleImageChange} style={{ display: "none" }} />
+          </label>
           <label style={{ cursor: "pointer", fontSize: "20px", color: "#a2b5c7" }} title="Attach File">
             📁
             <input type="file" onChange={handleFileChange} style={{ display: "none" }} />
@@ -304,4 +329,4 @@ export default function Telegram() {
 `;
 
 fs.writeFileSync("src/components/Telegram.jsx", code);
-console.log("Telegram.jsx written with files & pinning.");
+console.log("Telegram.jsx updated with image & file attachments.");
