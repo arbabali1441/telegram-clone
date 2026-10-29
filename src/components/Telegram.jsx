@@ -16,6 +16,8 @@ export default function Telegram() {
   const [pollOptions, setPollOptions] = useState(["", ""]);
   const [userStatus, setUserStatus] = useState("Online");
   const [typingUser, setTypingUser] = useState("");
+  const [replyingTo, setReplyingTo] = useState(null);
+  const [forwardingMessage, setForwardingMessage] = useState(null);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const chatEndRef = useRef(null);
@@ -27,6 +29,8 @@ export default function Telegram() {
   useEffect(() => {
     socket.emit("join_room", activeChat);
     setTypingUser("");
+    setReplyingTo(null);
+    setForwardingMessage(null);
     socket.on("load_history", (h) => setMessages(h));
     socket.on("receive_message", (d) => {
       if (d.room === activeChat) setMessages((p) => [...p, d]);
@@ -141,6 +145,7 @@ export default function Telegram() {
       fileName,
       pinned: 0,
       reactions: {},
+      replyTo: replyingTo ? { text: replyingTo.text || replyingTo.fileName || "Attachment", sender: replyingTo.sender } : null,
       time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       room: activeChat,
     });
@@ -149,6 +154,7 @@ export default function Telegram() {
     setAudioUrl(null);
     setFileData(null);
     setFileName("");
+    setReplyingTo(null);
   };
 
   const createPoll = (e) => {
@@ -190,10 +196,47 @@ export default function Telegram() {
     socket.emit("add_reaction", { messageId, emoji, room: activeChat });
   };
 
+  const handleForwardToRoom = (targetRoom) => {
+    if (!forwardingMessage) return;
+    socket.emit("send_message", {
+      id: Date.now().toString(),
+      sender: "You",
+      text: forwardingMessage.text,
+      image: forwardingMessage.image,
+      audio: forwardingMessage.audio,
+      fileData: forwardingMessage.fileData,
+      fileName: forwardingMessage.fileName,
+      pollData: forwardingMessage.pollData,
+      forwardedFrom: forwardingMessage.sender,
+      pinned: 0,
+      reactions: {},
+      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      room: targetRoom,
+    });
+    setForwardingMessage(null);
+    setActiveChat(targetRoom);
+  };
+
   const pinnedMessage = messages.find((m) => m.pinned === 1);
 
   return (
-    <div style={{ display: "flex", height: "100vh", backgroundColor: "#0e1621", color: "#fff", fontFamily: "sans-serif" }}>
+    <div style={{ display: "flex", height: "100vh", backgroundColor: "#0e1621", color: "#fff", fontFamily: "sans-serif", position: "relative" }}>
+      {forwardingMessage && (
+        <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", background: "rgba(0,0,0,0.7)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ background: "#17212b", padding: "25px", borderRadius: "12px", width: "350px", border: "1px solid #242f3d" }}>
+            <div style={{ fontSize: "16px", fontWeight: "600", marginBottom: "15px", color: "#5288c1" }}>Forward Message to...</div>
+            <div style={{ maxHeight: "200px", overflowY: "auto", marginBottom: "15px" }}>
+              {rooms.map((r) => (
+                <div key={r} onClick={() => handleForwardToRoom(r)} style={{ padding: "10px 12px", borderRadius: "6px", background: "#242f3d", marginBottom: "6px", cursor: "pointer", fontSize: "14px" }}>
+                  {r}
+                </div>
+              ))}
+            </div>
+            <button onClick={() => setForwardingMessage(null)} style={{ width: "100%", padding: "10px", background: "#ff5252", border: "none", borderRadius: "8px", color: "#fff", fontWeight: "600", cursor: "pointer" }}>Cancel</button>
+          </div>
+        </div>
+      )}
+
       <div style={{ width: "300px", borderRight: "1px solid #17212b", background: "#17212b", display: "flex", flexDirection: "column" }}>
         <div style={{ padding: "15px" }}>
           <input
@@ -241,6 +284,16 @@ export default function Telegram() {
         <div style={{ flex: 1, padding: "20px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "12px" }}>
           {messages.map((m) => (
             <div key={m.id} style={{ alignSelf: "flex-end", background: "#2b5278", padding: "10px 14px", borderRadius: "12px", maxWidth: "60%", position: "relative" }}>
+              {m.forwardedFrom && (
+                <div style={{ fontSize: "11px", color: "#5288c1", fontWeight: "600", marginBottom: "4px" }}>↗️ Forwarded from {m.forwardedFrom}</div>
+              )}
+              {m.replyTo && (
+                <div style={{ background: "rgba(0,0,0,0.25)", borderLeft: "3px solid #5288c1", padding: "4px 8px", borderRadius: "4px", marginBottom: "6px", fontSize: "12px" }}>
+                  <div style={{ color: "#5288c1", fontWeight: "600" }}>{m.replyTo.sender}</div>
+                  <div style={{ color: "#a2b5c7" }}>{m.replyTo.text}</div>
+                </div>
+              )}
+
               {m.pollData ? (
                 <div>
                   <div style={{ fontWeight: "600", marginBottom: "6px" }}>📊 {m.pollData.question}</div>
@@ -286,7 +339,9 @@ export default function Telegram() {
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "6px", fontSize: "11px", color: "#a2b5c7" }}>
                 <span>{m.time}</span>
                 <div style={{ display: "flex", gap: "8px" }}>
+                  <span onClick={() => setForwardingMessage(m)} style={{ cursor: "pointer" }} title="Forward">↗️</span>
                   <span onClick={() => handlePin(m.id, m.pinned)} style={{ cursor: "pointer" }} title="Pin">📌</span>
+                  <span onClick={() => setReplyingTo(m)} style={{ cursor: "pointer" }} title="Reply">↩️</span>
                   <span onClick={() => handleDelete(m.id)} style={{ cursor: "pointer", color: "#ff5252" }} title="Delete">🗑️</span>
                 </div>
               </div>
@@ -320,6 +375,16 @@ export default function Telegram() {
             <span style={{ fontSize: "13px", color: "#a2b5c7" }}>Voice Note ready:</span>
             <audio controls src={audioUrl} style={{ height: "30px" }} />
             <button onClick={() => setAudioUrl(null)} style={{ background: "transparent", border: "none", color: "#ff5252", cursor: "pointer" }}>Discard</button>
+          </div>
+        )}
+
+        {replyingTo && (
+          <div style={{ padding: "8px 15px", background: "#17212b", borderTop: "1px solid #242f3d", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ fontSize: "12px" }}>
+              <span style={{ color: "#5288c1", fontWeight: "600" }}>Replying to {replyingTo.sender}: </span>
+              <span style={{ color: "#a2b5c7" }}>{replyingTo.text || replyingTo.fileName || "Attachment"}</span>
+            </div>
+            <button onClick={() => setReplyingTo(null)} style={{ background: "transparent", border: "none", color: "#ff5252", cursor: "pointer", fontSize: "14px" }}>✕</button>
           </div>
         )}
 
