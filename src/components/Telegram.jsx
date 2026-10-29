@@ -6,10 +6,14 @@ const socket = io("http://localhost:5000");
 export default function Telegram() {
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
+  const [audioUrl, setAudioUrl] = useState(null);
+  const [isRecording, setIsRecording] = useState(false);
   const [showPollModal, setShowPollModal] = useState(false);
   const [pollQuestion, setPollQuestion] = useState("");
   const [pollOptions, setPollOptions] = useState(["", ""]);
   const [userStatus, setUserStatus] = useState("Online");
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
   const chatEndRef = useRef(null);
   const [activeChat, setActiveChat] = useState("Saved Messages");
   const [rooms, setRooms] = useState(["Saved Messages", "Global Community", "Tech Talk"]);
@@ -37,17 +41,47 @@ export default function Telegram() {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorderRef.current = new MediaRecorder(stream);
+      audioChunksRef.current = [];
+      mediaRecorderRef.current.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data);
+      };
+      mediaRecorderRef.current.onstop = () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+        const reader = new FileReader();
+        reader.onloadend = () => setAudioUrl(reader.result);
+        reader.readAsDataURL(audioBlob);
+      };
+      mediaRecorderRef.current.start();
+      setIsRecording(true);
+    } catch (err) {
+      alert("Microphone access denied or unavailable.");
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
+  };
+
   const handleSend = (e) => {
     e.preventDefault();
-    if (!text.trim()) return;
+    if (!text.trim() && !audioUrl) return;
     socket.emit("send_message", {
       id: Date.now().toString(),
       sender: "You",
-      text,
+      text: text.trim() || null,
+      audio: audioUrl,
       time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       room: activeChat,
     });
     setText("");
+    setAudioUrl(null);
   };
 
   const createPoll = (e) => {
@@ -124,6 +158,8 @@ export default function Telegram() {
                     );
                   })}
                 </div>
+              ) : m.audio ? (
+                <audio controls src={m.audio} style={{ width: "220px" }} />
               ) : (
                 <div>{m.text}</div>
               )}
@@ -131,6 +167,14 @@ export default function Telegram() {
           ))}
           <div ref={chatEndRef} />
         </div>
+
+        {audioUrl && (
+          <div style={{ padding: "10px 15px", background: "#17212b", display: "flex", alignItems: "center", gap: "10px" }}>
+            <span style={{ fontSize: "13px", color: "#a2b5c7" }}>Voice Note ready:</span>
+            <audio controls src={audioUrl} style={{ height: "30px" }} />
+            <button onClick={() => setAudioUrl(null)} style={{ background: "transparent", border: "none", color: "#ff5252", cursor: "pointer" }}>Discard</button>
+          </div>
+        )}
 
         {showPollModal && (
           <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", background: "rgba(0,0,0,0.7)", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -162,7 +206,12 @@ export default function Telegram() {
           </div>
         )}
 
-        <form onSubmit={handleSend} style={{ padding: "15px", background: "#17212b", display: "flex", gap: "10px" }}>
+        <form onSubmit={handleSend} style={{ padding: "15px", background: "#17212b", display: "flex", gap: "10px", alignItems: "center" }}>
+          {isRecording ? (
+            <button type="button" onClick={stopRecording} style={{ background: "#ff5252", border: "none", borderRadius: "50%", width: "40px", height: "40px", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }} title="Stop Recording">⏹️</button>
+          ) : (
+            <button type="button" onClick={startRecording} style={{ background: "#242f3d", border: "none", borderRadius: "50%", width: "40px", height: "40px", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }} title="Record Voice Note">🎤</button>
+          )}
           <input
             type="text"
             placeholder="Write a message..."
