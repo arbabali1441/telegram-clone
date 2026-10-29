@@ -131,7 +131,7 @@ export default function Telegram() {
     myMsgBg: "#2b5278", otherMsgBg: "#18222d", inputBg: "#242f3d", accent: "#5288c1", hoverBg: "#202b36", iconColor: "#8696a7"
   } : {
     bg: "#ffffff", sidebarBg: "#f8f9fa", chatBg: "#efeae2", panelBg: "#ffffff", border: "#e5e7eb", text: "#111827", textMuted: "#6b7280",
-    myMsgBg: "#eeffde", otherMsgBg: "#ffffff", inputBg: "#f1f3f5", accent: "#3390ec", hoverBg: "#f1f3f5", iconColor: "#54656f"
+    myMsgBg: "#eeffde", otherMsgBg: "#ffffff", inputBg: "#f1f3f5", accent: "#3390ec", hoverBg: "#f1f3f5", iconColor: "#707579"
   };
 
   return (
@@ -199,13 +199,23 @@ export default function Telegram() {
             </div>
           </div>
           <div style={{ display: "flex", gap: "8px" }}>
-            <button onClick={() => setIsDarkMode(!isDarkMode)} style={{ background: theme.inputBg, border: "none", width: "34px", height: "34px", borderRadius: "50%", color: theme.text, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px" }} title="Toggle Theme">{isDarkMode ? "☀️" : "🌙"}</button>
-            <button onClick={() => setShowProfileModal(true)} style={{ background: theme.inputBg, border: "none", width: "34px", height: "34px", borderRadius: "50%", color: theme.text, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px" }} title="Settings">⚙️</button>
+            <button onClick={() => setIsDarkMode(!isDarkMode)} style={{ background: theme.inputBg, border: "none", width: "34px", height: "34px", borderRadius: "50%", color: theme.iconColor, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }} title="Toggle Theme">
+              {isDarkMode ? (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+              ) : (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+              )}
+            </button>
+            <button onClick={() => setShowProfileModal(true)} style={{ background: theme.inputBg, border: "none", width: "34px", height: "34px", borderRadius: "50%", color: theme.iconColor, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }} title="Settings">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            </button>
           </div>
         </div>
         <div style={{ padding: "12px 16px", display: "flex", gap: "8px" }}>
           <input type="text" placeholder="Search chats..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} style={{ flex: 1, padding: "10px 14px", background: theme.inputBg, border: "none", borderRadius: "20px", color: theme.text, outline: "none", fontSize: "14px" }} />
-          <button onClick={() => setShowNewChatModal(true)} style={{ background: theme.accent, border: "none", width: "38px", height: "38px", borderRadius: "50%", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px", fontWeight: "bold", boxShadow: "0 2px 8px rgba(0,0,0,0.2)" }} title="New Chat">+</button>
+          <button onClick={() => setShowNewChatModal(true)} style={{ background: theme.accent, border: "none", width: "38px", height: "38px", borderRadius: "50%", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 8px rgba(0,0,0,0.2)" }} title="New Chat">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          </button>
         </div>
         <div style={{ flex: 1, overflowY: "auto", padding: "4px 8px" }}>
           {rooms.filter(r => r.toLowerCase().includes(searchQuery.toLowerCase())).map((r) => (
@@ -229,9 +239,15 @@ export default function Telegram() {
             </div>
           </div>
           <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-            <button onClick={() => { setCallType("voice"); setInCall(true); }} style={{ background: theme.inputBg, border: "none", width: "36px", height: "36px", borderRadius: "50%", color: theme.text, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px" }} title="Voice Call">📞</button>
-            <button onClick={() => { setCallType("video"); setInCall(true); }} style={{ background: theme.inputBg, border: "none", width: "36px", height: "36px", borderRadius: "50%", color: theme.text, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px" }} title="Video Call">📹</button>
-            <button onClick={() => { setShowChatSearch(!showChatSearch); setChatSearchQuery(""); }} style={{ background: theme.inputBg, border: "none", width: "36px", height: "36px", borderRadius: "50%", color: theme.text, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px" }} title="Search Messages">🔍</button>
+            <button onClick={() => { setCallType("voice"); setInCall(true); }} style={{ background: theme.inputBg, border: "none", width: "36px", height: "36px", borderRadius: "50%", color: theme.iconColor, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }} title="Voice Call">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+            </button>
+            <button onClick={() => { setCallType("video"); setInCall(true); }} style={{ background: theme.inputBg, border: "none", width: "36px", height: "36px", borderRadius: "50%", color: theme.iconColor, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }} title="Video Call">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+            </button>
+            <button onClick={() => { setShowChatSearch(!showChatSearch); setChatSearchQuery(""); }} style={{ background: theme.inputBg, border: "none", width: "36px", height: "36px", borderRadius: "50%", color: theme.iconColor, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }} title="Search Messages">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            </button>
             <button onClick={() => setShowPollModal(true)} style={{ background: theme.accent, border: "none", padding: "8px 16px", borderRadius: "20px", color: "#fff", cursor: "pointer", fontWeight: "600", fontSize: "13px" }}>Create Poll</button>
           </div>
         </div>
@@ -321,26 +337,32 @@ export default function Telegram() {
           </div>
         )}
 
-        {/* Pro Input Bar */}
+        {/* Pro Input Bar with Telegram SVG Icons */}
         <form onSubmit={handleSend} style={{ padding: "12px 24px", background: theme.panelBg, borderTop: "1px solid " + theme.border, display: "flex", gap: "12px", alignItems: "center" }}>
-          <label style={{ cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", width: "38px", height: "38px", borderRadius: "50%", background: theme.inputBg, fontSize: "18px" }} title="Attach Image">
-            📎
+          <label style={{ cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", width: "40px", height: "40px", borderRadius: "50%", background: theme.inputBg, color: theme.iconColor }} title="Attach Image">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
             <input type="file" accept="image/*" onChange={(e) => { const f = e.target.files[0]; if(f){ const r = new FileReader(); r.onloadend = () => setImage(r.result); r.readAsDataURL(f); } }} style={{ display: "none" }} />
           </label>
-          <label style={{ cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", width: "38px", height: "38px", borderRadius: "50%", background: theme.inputBg, fontSize: "18px" }} title="Attach File">
-            📁
+          <label style={{ cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", width: "40px", height: "40px", borderRadius: "50%", background: theme.inputBg, color: theme.iconColor }} title="Attach File">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>
             <input type="file" onChange={(e)=>{ const f = e.target.files[0]; if(f){ setFileName(f.name); const r = new FileReader(); r.onloadend = () => setFileData(r.result); r.readAsDataURL(f); } }} style={{ display: "none" }} />
           </label>
           
           {isRecording ? (
-            <button type="button" onClick={stopRecording} style={{ background: "#ff3b30", border: "none", borderRadius: "50%", width: "38px", height: "38px", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px" }} title="Stop Recording">⏹️</button>
+            <button type="button" onClick={stopRecording} style={{ background: "#ff3b30", border: "none", borderRadius: "50%", width: "40px", height: "40px", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }} title="Stop Recording">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"></rect></svg>
+            </button>
           ) : (
-            <button type="button" onClick={startRecording} style={{ background: theme.inputBg, border: "none", borderRadius: "50%", width: "38px", height: "38px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px" }} title="Record Voice Note">🎤</button>
+            <button type="button" onClick={startRecording} style={{ background: theme.inputBg, border: "none", borderRadius: "50%", width: "40px", height: "40px", color: theme.iconColor, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }} title="Record Voice Note">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v1a7 7 0 0 1-14 0v-1"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+            </button>
           )}
 
           <input type="text" placeholder="Write a message..." value={text} onChange={handleTextChange} style={{ flex: 1, padding: "12px 18px", background: theme.inputBg, border: "none", borderRadius: "24px", color: theme.text, outline: "none", fontSize: "14px" }} />
           
-          <button type="submit" style={{ background: theme.accent, border: "none", borderRadius: "24px", padding: "10px 22px", color: "#fff", cursor: "pointer", fontWeight: "600", fontSize: "14px", boxShadow: "0 2px 10px rgba(51,144,236,0.3)" }} title="Send Message">Send</button>
+          <button type="submit" style={{ background: theme.accent, border: "none", borderRadius: "50%", width: "42px", height: "42px", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 8px rgba(51,144,236,0.3)" }} title="Send Message">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: "translateX(1px)" }}><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+          </button>
         </form>
       </div>
     </div>
@@ -348,4 +370,4 @@ export default function Telegram() {
 }`;
 
 fs.writeFileSync("src/components/Telegram.jsx", clientCode);
-console.log("Locked professional button layout and icons successfully.");
+console.log("Updated Telegram component with pro SVG icons for all buttons.");
