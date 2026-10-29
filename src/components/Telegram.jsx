@@ -18,7 +18,7 @@ export default function Telegram() {
   const [newRoomName, setNewRoomName] = useState("");
   const [pollQuestion, setPollQuestion] = useState("");
   const [pollOptions, setPollOptions] = useState(["", ""]);
-  const [myUsername, setMyUsername] = useState("You");
+  const [myUsername, setMyUsername] = useState("Coach Ali");
   const [userStatus, setUserStatus] = useState("Online");
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [typingUser, setTypingUser] = useState("");
@@ -44,7 +44,7 @@ export default function Telegram() {
     socket.on("update_pin", (d) => { if(d) setMessages((p) => p.map((m) => m.id === d.messageId ? { ...m, pinned: d.pinned } : m)); });
     socket.on("update_reaction", (d) => { if(d) setMessages((p) => p.map((m) => m.id === d.messageId ? { ...m, reactions: d.reactions } : m)); });
     socket.on("remove_message", (d) => { if(d) setMessages((p) => p.filter((m) => m.id !== d.messageId)); });
-    socket.on("display_typing", (d) => { if (d && d.room === activeChat) setTypingUser("Someone is typing..."); });
+    socket.on("display_typing", (d) => { if (d && d.room === activeChat) setTypingUser("typing..."); });
     socket.on("hide_typing", (d) => { if (d && d.room === activeChat) setTypingUser(""); });
     return () => { socket.off("load_history"); socket.off("receive_message"); socket.off("update_poll"); socket.off("update_pin"); socket.off("update_reaction"); socket.off("remove_message"); socket.off("display_typing"); socket.off("hide_typing"); };
   }, [activeChat]);
@@ -79,9 +79,7 @@ export default function Telegram() {
     e.preventDefault();
     if (!newRoomName.trim()) return;
     const roomName = newRoomName.trim();
-    if (!rooms.includes(roomName)) {
-      setRooms([...rooms, roomName]);
-    }
+    if (!rooms.includes(roomName)) setRooms([...rooms, roomName]);
     setActiveChat(roomName);
     setNewRoomName("");
     setShowNewChatModal(false);
@@ -128,190 +126,207 @@ export default function Telegram() {
   }) : [];
 
   const theme = isDarkMode ? {
-    bg: "#0e1621", sidebarBg: "#17212b", panelBg: "#17212b", border: "#242f3d", text: "#fff", textMuted: "#a2b5c7",
-    myMsgBg: "#2b5278", otherMsgBg: "#18222d", inputBg: "#242f3d", accent: "#5288c1"
+    bg: "#0e1621", sidebarBg: "#17212b", chatBg: "#0e1621", panelBg: "#17212b", border: "#202b36", text: "#f5f5f5", textMuted: "#8696a7",
+    myMsgBg: "#2b5278", otherMsgBg: "#18222d", inputBg: "#242f3d", accent: "#5288c1", hoverBg: "#202b36"
   } : {
-    bg: "#ffffff", sidebarBg: "#f6f6f6", panelBg: "#ffffff", border: "#e4e4e4", text: "#000000", textMuted: "#707579",
-    myMsgBg: "#eeffde", otherMsgBg: "#f1f1f1", inputBg: "#f1f1f1", accent: "#3390ec"
+    bg: "#ffffff", sidebarBg: "#f8f9fa", chatBg: "#efeae2", panelBg: "#ffffff", border: "#e5e7eb", text: "#111827", textMuted: "#6b7280",
+    myMsgBg: "#eeffde", otherMsgBg: "#ffffff", inputBg: "#f1f3f5", accent: "#3390ec", hoverBg: "#f1f3f5"
   };
 
   return (
-    <div style={{ display: "flex", height: "100vh", backgroundColor: theme.bg, color: theme.text, fontFamily: "sans-serif", position: "relative" }}>
+    <div style={{ display: "flex", height: "100vh", backgroundColor: theme.bg, color: theme.text, fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif", position: "relative", overflow: "hidden" }}>
       {inCall && (
-        <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", background: "rgba(0,0,0,0.85)", zIndex: 2000, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-          <div style={{ fontSize: "20px", fontWeight: "600", marginBottom: "10px" }}>{callType === "video" ? "📹 Video Call" : "📞 Voice Call"} with {activeChat}</div>
-          <div style={{ fontSize: "14px", color: "#a2b5c7", marginBottom: "30px" }}>Connecting... (Peer Connected)</div>
-          <div style={{ width: callType === "video" ? "500px" : "0px", height: callType === "video" ? "300px" : "0px", background: "#242f3d", borderRadius: "12px", marginBottom: "30px", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
+        <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", background: "rgba(0,0,0,0.85)", zIndex: 2000, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", backdropFilter: "blur(8px)" }}>
+          <div style={{ fontSize: "22px", fontWeight: "600", marginBottom: "8px", color: "#fff" }}>{callType === "video" ? "📹 Video Call" : "📞 Voice Call"} with {activeChat}</div>
+          <div style={{ fontSize: "14px", color: "#a2b5c7", marginBottom: "30px" }}>Secure Peer Connection Established</div>
+          <div style={{ width: callType === "video" ? "540px" : "0px", height: callType === "video" ? "340px" : "0px", background: "#17212b", borderRadius: "16px", marginBottom: "30px", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", border: "1px solid #242f3d", boxShadow: "0 10px 30px rgba(0,0,0,0.5)" }}>
             {callType === "video" ? "Camera Stream Active" : ""}
           </div>
-          <button onClick={() => setInCall(false)} style={{ background: "#ff5252", border: "none", padding: "12px 25px", borderRadius: "25px", color: "#fff", fontWeight: "600", cursor: "pointer", fontSize: "15px" }}>End Call 📴</button>
+          <button onClick={() => setInCall(false)} style={{ background: "#ff3b30", border: "none", padding: "12px 30px", borderRadius: "30px", color: "#fff", fontWeight: "600", cursor: "pointer", fontSize: "15px", boxShadow: "0 4px 15px rgba(255,59,48,0.4)" }}>End Call 📴</button>
         </div>
       )}
 
       {showProfileModal && (
-        <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", background: "rgba(0,0,0,0.7)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <div style={{ background: theme.panelBg, padding: "25px", borderRadius: "12px", width: "320px", border: "1px solid " + theme.border }}>
-            <div style={{ fontSize: "16px", fontWeight: "600", marginBottom: "15px", color: theme.accent }}>👤 Profile Settings</div>
-            <div style={{ marginBottom: "8px", fontSize: "13px", color: theme.textMuted }}>Display Name</div>
-            <input type="text" value={myUsername} onChange={(e) => setMyUsername(e.target.value)} style={{ width: "100%", padding: "10px", background: theme.inputBg, border: "none", borderRadius: "8px", color: theme.text, marginBottom: "15px", outline: "none" }} />
-            <div style={{ marginBottom: "8px", fontSize: "13px", color: theme.textMuted }}>Status</div>
-            <select value={userStatus} onChange={(e) => setUserStatus(e.target.value)} style={{ width: "100%", padding: "10px", background: theme.inputBg, border: "none", borderRadius: "8px", color: theme.text, marginBottom: "20px", outline: "none" }}>
+        <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", background: "rgba(0,0,0,0.6)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(4px)" }}>
+          <div style={{ background: theme.panelBg, padding: "28px", borderRadius: "16px", width: "340px", border: "1px solid " + theme.border, boxShadow: "0 12px 40px rgba(0,0,0,0.4)" }}>
+            <div style={{ fontSize: "18px", fontWeight: "600", marginBottom: "18px", color: theme.accent }}>👤 Profile Settings</div>
+            <div style={{ marginBottom: "8px", fontSize: "13px", color: theme.textMuted, fontWeight: "500" }}>Display Name</div>
+            <input type="text" value={myUsername} onChange={(e) => setMyUsername(e.target.value)} style={{ width: "100%", padding: "12px 14px", background: theme.inputBg, border: "1px solid " + theme.border, borderRadius: "10px", color: theme.text, marginBottom: "18px", outline: "none", fontSize: "14px" }} />
+            <div style={{ marginBottom: "8px", fontSize: "13px", color: theme.textMuted, fontWeight: "500" }}>Status</div>
+            <select value={userStatus} onChange={(e) => setUserStatus(e.target.value)} style={{ width: "100%", padding: "12px 14px", background: theme.inputBg, border: "1px solid " + theme.border, borderRadius: "10px", color: theme.text, marginBottom: "24px", outline: "none", fontSize: "14px" }}>
               <option value="Online">Online</option>
               <option value="Busy">Busy</option>
               <option value="Away">Away</option>
               <option value="Offline">Offline</option>
             </select>
-            <button onClick={() => setShowProfileModal(false)} style={{ width: "100%", padding: "10px", background: theme.accent, border: "none", borderRadius: "8px", color: "#fff", fontWeight: "600", cursor: "pointer" }}>Save Profile</button>
+            <button onClick={() => setShowProfileModal(false)} style={{ width: "100%", padding: "12px", background: theme.accent, border: "none", borderRadius: "10px", color: "#fff", fontWeight: "600", cursor: "pointer", fontSize: "14px", boxShadow: "0 4px 12px rgba(82,136,193,0.3)" }}>Save Profile</button>
           </div>
         </div>
       )}
 
       {showNewChatModal && (
-        <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", background: "rgba(0,0,0,0.7)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <form onSubmit={handleCreateRoom} style={{ background: theme.panelBg, padding: "25px", borderRadius: "12px", width: "320px", border: "1px solid " + theme.border }}>
-            <div style={{ fontSize: "16px", fontWeight: "600", marginBottom: "15px", color: theme.accent }}>💬 New Chat / Room</div>
-            <input type="text" placeholder="Enter room or chat name..." value={newRoomName} onChange={(e) => setNewRoomName(e.target.value)} style={{ width: "100%", padding: "10px", background: theme.inputBg, border: "none", borderRadius: "8px", color: theme.text, marginBottom: "15px", outline: "none" }} />
-            <button type="submit" style={{ width: "100%", padding: "10px", background: theme.accent, border: "none", borderRadius: "8px", color: "#fff", fontWeight: "600", cursor: "pointer", marginBottom: "8px" }}>Create / Join</button>
-            <button type="button" onClick={() => setShowNewChatModal(false)} style={{ width: "100%", padding: "10px", background: "#ff5252", border: "none", borderRadius: "8px", color: "#fff", fontWeight: "600", cursor: "pointer" }}>Cancel</button>
+        <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", background: "rgba(0,0,0,0.6)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(4px)" }}>
+          <form onSubmit={handleCreateRoom} style={{ background: theme.panelBg, padding: "28px", borderRadius: "16px", width: "340px", border: "1px solid " + theme.border, boxShadow: "0 12px 40px rgba(0,0,0,0.4)" }}>
+            <div style={{ fontSize: "18px", fontWeight: "600", marginBottom: "18px", color: theme.accent }}>💬 New Chat / Room</div>
+            <input type="text" placeholder="Enter room or chat name..." value={newRoomName} onChange={(e) => setNewRoomName(e.target.value)} style={{ width: "100%", padding: "12px 14px", background: theme.inputBg, border: "1px solid " + theme.border, borderRadius: "10px", color: theme.text, marginBottom: "18px", outline: "none", fontSize: "14px" }} />
+            <button type="submit" style={{ width: "100%", padding: "12px", background: theme.accent, border: "none", borderRadius: "10px", color: "#fff", fontWeight: "600", cursor: "pointer", marginBottom: "10px", fontSize: "14px", boxShadow: "0 4px 12px rgba(82,136,193,0.3)" }}>Create / Join</button>
+            <button type="button" onClick={() => setShowNewChatModal(false)} style={{ width: "100%", padding: "12px", background: "transparent", border: "1px solid " + theme.border, borderRadius: "10px", color: "#ff3b30", fontWeight: "600", cursor: "pointer", fontSize: "14px" }}>Cancel</button>
           </form>
         </div>
       )}
 
       {forwardingMessage && (
-        <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", background: "rgba(0,0,0,0.7)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <div style={{ background: theme.panelBg, padding: "25px", borderRadius: "12px", width: "350px", border: "1px solid " + theme.border }}>
-            <div style={{ fontSize: "16px", fontWeight: "600", marginBottom: "15px", color: theme.accent }}>Forward Message to...</div>
-            <div style={{ maxHeight: "200px", overflowY: "auto", marginBottom: "15px" }}>
-              {rooms.map((r) => (<div key={r} onClick={() => handleForwardToRoom(r)} style={{ padding: "10px 12px", borderRadius: "6px", background: theme.inputBg, marginBottom: "6px", cursor: "pointer", fontSize: "14px" }}>{r}</div>))}
+        <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", background: "rgba(0,0,0,0.6)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(4px)" }}>
+          <div style={{ background: theme.panelBg, padding: "28px", borderRadius: "16px", width: "360px", border: "1px solid " + theme.border, boxShadow: "0 12px 40px rgba(0,0,0,0.4)" }}>
+            <div style={{ fontSize: "18px", fontWeight: "600", marginBottom: "16px", color: theme.accent }}>Forward Message to...</div>
+            <div style={{ maxHeight: "220px", overflowY: "auto", marginBottom: "18px", display: "flex", flexDirection: "column", gap: "6px" }}>
+              {rooms.map((r) => (<div key={r} onClick={() => handleForwardToRoom(r)} style={{ padding: "12px 14px", borderRadius: "10px", background: theme.inputBg, cursor: "pointer", fontSize: "14px", fontWeight: "500", transition: "background 0.2s" }} onMouseEnter={(e)=>e.currentTarget.style.background = theme.hoverBg} onMouseLeave={(e)=>e.currentTarget.style.background = theme.inputBg}>{r}</div>))}
             </div>
-            <button onClick={() => setForwardingMessage(null)} style={{ width: "100%", padding: "10px", background: "#ff5252", border: "none", borderRadius: "8px", color: "#fff", fontWeight: "600", cursor: "pointer" }}>Cancel</button>
+            <button onClick={() => setForwardingMessage(null)} style={{ width: "100%", padding: "12px", background: "transparent", border: "1px solid " + theme.border, borderRadius: "10px", color: "#ff3b30", fontWeight: "600", cursor: "pointer", fontSize: "14px" }}>Cancel</button>
           </div>
         </div>
       )}
 
-      <div style={{ width: "300px", borderRight: "1px solid " + theme.border, background: theme.sidebarBg, display: "flex", flexDirection: "column" }}>
-        <div style={{ padding: "15px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid " + theme.border }}>
-          <div>
-            <div style={{ fontWeight: "600", fontSize: "15px" }}>{myUsername}</div>
-            <div style={{ fontSize: "11px", color: "#4fae4e" }}>● {userStatus}</div>
+      {/* Sidebar */}
+      <div style={{ width: "320px", borderRight: "1px solid " + theme.border, background: theme.sidebarBg, display: "flex", flexDirection: "column" }}>
+        <div style={{ padding: "16px 20px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid " + theme.border }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <div style={{ width: "38px", height: "38px", borderRadius: "50%", background: theme.accent, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", color: "#fff", fontSize: "15px" }}>{myUsername.charAt(0)}</div>
+            <div>
+              <div style={{ fontWeight: "600", fontSize: "15px" }}>{myUsername}</div>
+              <div style={{ fontSize: "12px", color: "#34c759", fontWeight: "500" }}>● {userStatus}</div>
+            </div>
           </div>
-          <div style={{ display: "flex", gap: "6px" }}>
-            <button onClick={() => setIsDarkMode(!isDarkMode)} style={{ background: theme.inputBg, border: "none", padding: "6px 8px", borderRadius: "6px", color: theme.text, cursor: "pointer", fontSize: "12px" }} title="Toggle Theme">{isDarkMode ? "☀️" : "🌙"}</button>
-            <button onClick={() => setShowProfileModal(true)} style={{ background: theme.inputBg, border: "none", padding: "6px 8px", borderRadius: "6px", color: theme.text, cursor: "pointer", fontSize: "12px" }}>⚙️</button>
+          <div style={{ display: "flex", gap: "8px" }}>
+            <button onClick={() => setIsDarkMode(!isDarkMode)} style={{ background: theme.inputBg, border: "none", width: "34px", height: "34px", borderRadius: "50%", color: theme.text, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "15px" }} title="Toggle Theme">{isDarkMode ? "☀️" : "🌙"}</button>
+            <button onClick={() => setShowProfileModal(true)} style={{ background: theme.inputBg, border: "none", width: "34px", height: "34px", borderRadius: "50%", color: theme.text, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "15px" }} title="Settings">⚙️</button>
           </div>
         </div>
-        <div style={{ padding: "12px 15px", display: "flex", gap: "8px" }}>
-          <input type="text" placeholder="Search rooms..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} style={{ flex: 1, padding: "10px", background: theme.inputBg, border: "none", borderRadius: "8px", color: theme.text, outline: "none" }} />
-          <button onClick={() => setShowNewChatModal(true)} style={{ background: theme.accent, border: "none", padding: "0 12px", borderRadius: "8px", color: "#fff", cursor: "pointer", fontSize: "16px", fontWeight: "bold" }} title="New Chat">+</button>
+        <div style={{ padding: "12px 16px", display: "flex", gap: "8px" }}>
+          <input type="text" placeholder="Search chats..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} style={{ flex: 1, padding: "10px 14px", background: theme.inputBg, border: "none", borderRadius: "20px", color: theme.text, outline: "none", fontSize: "14px" }} />
+          <button onClick={() => setShowNewChatModal(true)} style={{ background: theme.accent, border: "none", width: "38px", height: "38px", borderRadius: "50%", color: "#fff", cursor: "pointer", fontSize: "18px", fontWeight: "bold", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 8px rgba(0,0,0,0.2)" }} title="New Chat">+</button>
         </div>
-        <div style={{ flex: 1, overflowY: "auto" }}>
-          {rooms.filter(r => r.toLowerCase().includes(searchQuery.toLowerCase())).map((r) => (<div key={r} onClick={() => setActiveChat(r)} style={{ padding: "12px 15px", cursor: "pointer", background: activeChat === r ? theme.accent : "transparent", color: activeChat === r ? "#fff" : theme.text }}>{r === "Saved Messages" ? "⭐ Saved Messages" : r}</div>))}
+        <div style={{ flex: 1, overflowY: "auto", padding: "4px 8px" }}>
+          {rooms.filter(r => r.toLowerCase().includes(searchQuery.toLowerCase())).map((r) => (
+            <div key={r} onClick={() => setActiveChat(r)} style={{ padding: "12px 16px", borderRadius: "12px", cursor: "pointer", background: activeChat === r ? theme.accent : "transparent", color: activeChat === r ? "#fff" : theme.text, marginBottom: "4px", fontWeight: activeChat === r ? "600" : "400", display: "flex", alignItems: "center", gap: "12px", transition: "background 0.2s" }} onMouseEnter={(e)=>{if(activeChat!==r)e.currentTarget.style.background=theme.hoverBg}} onMouseLeave={(e)=>{if(activeChat!==r)e.currentTarget.style.background="transparent"}}>
+              <span style={{ fontSize: "18px" }}>{r === "Saved Messages" ? "⭐" : "💬"}</span>
+              <div style={{ fontSize: "14px" }}>{r}</div>
+            </div>
+          ))}
         </div>
       </div>
 
-      <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-        <div style={{ padding: "15px", background: theme.panelBg, borderBottom: "1px solid " + theme.border, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div>
-            <div style={{ fontWeight: "600" }}>{activeChat === "Saved Messages" ? "⭐ Saved Messages (Cloud Storage)" : activeChat}</div>
-            <div style={{ fontSize: "12px", color: theme.textMuted }}>{typingUser || "active chat"}</div>
+      {/* Main Chat Area */}
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", backgroundColor: theme.chatBg }}>
+        {/* Chat Header */}
+        <div style={{ padding: "14px 24px", background: theme.panelBg, borderBottom: "1px solid " + theme.border, display: "flex", justifyContent: "space-between", alignItems: "center", zIndex: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+            <div style={{ width: "40px", height: "40px", borderRadius: "50%", background: "#2b5278", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", color: "#fff" }}>{activeChat.charAt(0)}</div>
+            <div>
+              <div style={{ fontWeight: "600", fontSize: "15px" }}>{activeChat === "Saved Messages" ? "⭐ Saved Messages (Cloud Storage)" : activeChat}</div>
+              <div style={{ fontSize: "12px", color: theme.textMuted, fontWeight: "500" }}>{typingUser || "last seen recently"}</div>
+            </div>
           </div>
           <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-            <button onClick={() => { setCallType("voice"); setInCall(true); }} style={{ background: theme.inputBg, border: "none", padding: "6px 10px", borderRadius: "6px", color: theme.text, cursor: "pointer", fontSize: "14px" }} title="Voice Call">📞</button>
-            <button onClick={() => { setCallType("video"); setInCall(true); }} style={{ background: theme.inputBg, border: "none", padding: "6px 10px", borderRadius: "6px", color: theme.text, cursor: "pointer", fontSize: "14px" }} title="Video Call">📹</button>
-            <button onClick={() => { setShowChatSearch(!showChatSearch); setChatSearchQuery(""); }} style={{ background: theme.inputBg, border: "none", padding: "6px 10px", borderRadius: "6px", color: theme.text, cursor: "pointer", fontSize: "13px" }} title="Search Messages">🔍</button>
-            <button onClick={() => setShowPollModal(true)} style={{ background: theme.accent, border: "none", padding: "6px 12px", borderRadius: "6px", color: "#fff", cursor: "pointer" }}>Create Poll</button>
+            <button onClick={() => { setCallType("voice"); setInCall(true); }} style={{ background: theme.inputBg, border: "none", width: "36px", height: "36px", borderRadius: "50%", color: theme.text, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "15px" }} title="Voice Call">📞</button>
+            <button onClick={() => { setCallType("video"); setInCall(true); }} style={{ background: theme.inputBg, border: "none", width: "36px", height: "36px", borderRadius: "50%", color: theme.text, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "15px" }} title="Video Call">📹</button>
+            <button onClick={() => { setShowChatSearch(!showChatSearch); setChatSearchQuery(""); }} style={{ background: theme.inputBg, border: "none", width: "36px", height: "36px", borderRadius: "50%", color: theme.text, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px" }} title="Search Messages">🔍</button>
+            <button onClick={() => setShowPollModal(true)} style={{ background: theme.accent, border: "none", padding: "8px 16px", borderRadius: "20px", color: "#fff", cursor: "pointer", fontWeight: "600", fontSize: "13px", boxShadow: "0 2px 8px rgba(0,0,0,0.15)" }}>Create Poll</button>
           </div>
         </div>
 
         {showChatSearch && (
-          <div style={{ background: theme.panelBg, padding: "10px 15px", borderBottom: "1px solid " + theme.border, display: "flex", gap: "10px", alignItems: "center" }}>
-            <input type="text" placeholder="Search in current chat..." value={chatSearchQuery} onChange={(e) => setChatSearchQuery(e.target.value)} style={{ flex: 1, padding: "8px 12px", background: theme.inputBg, border: "none", borderRadius: "6px", color: theme.text, outline: "none", fontSize: "13px" }} />
-            <button onClick={() => { setShowChatSearch(false); setChatSearchQuery(""); }} style={{ background: "transparent", border: "none", color: "#ff5252", cursor: "pointer", fontSize: "14px" }}>✕</button>
+          <div style={{ background: theme.panelBg, padding: "10px 20px", borderBottom: "1px solid " + theme.border, display: "flex", gap: "10px", alignItems: "center" }}>
+            <input type="text" placeholder="Search in current chat..." value={chatSearchQuery} onChange={(e) => setChatSearchQuery(e.target.value)} style={{ flex: 1, padding: "10px 14px", background: theme.inputBg, border: "none", borderRadius: "20px", color: theme.text, outline: "none", fontSize: "14px" }} />
+            <button onClick={() => { setShowChatSearch(false); setChatSearchQuery(""); }} style={{ background: "transparent", border: "none", color: "#ff3b30", cursor: "pointer", fontSize: "16px", fontWeight: "bold" }}>✕</button>
           </div>
         )}
 
         {pinnedMessage && (
-          <div style={{ background: theme.panelBg, padding: "8px 16px", borderBottom: "1px solid " + theme.border, display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "13px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <div style={{ background: theme.panelBg, padding: "10px 20px", borderBottom: "1px solid " + theme.border, display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "13px", boxShadow: "0 2px 6px rgba(0,0,0,0.1)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
               <span style={{ color: theme.accent, fontWeight: "bold" }}>📌 Pinned:</span>
               <span style={{ color: theme.textMuted }}>{pinnedMessage.pollData ? pinnedMessage.pollData.question : pinnedMessage.fileName || pinnedMessage.text}</span>
             </div>
-            <button onClick={() => socket.emit("pin_message", { messageId: pinnedMessage.id, pinned: 0, room: activeChat })} style={{ background: "transparent", border: "none", color: "#ff5252", cursor: "pointer", fontSize: "12px" }}>Unpin</button>
+            <button onClick={() => socket.emit("pin_message", { messageId: pinnedMessage.id, pinned: 0, room: activeChat })} style={{ background: "transparent", border: "none", color: "#ff3b30", cursor: "pointer", fontSize: "12px", fontWeight: "600" }}>Unpin</button>
           </div>
         )}
 
-        <div style={{ flex: 1, padding: "20px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "12px" }}>
+        {/* Message List */}
+        <div style={{ flex: 1, padding: "20px 24px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "10px" }}>
           {filteredMessages && filteredMessages.map && filteredMessages.map((m) => (
-            <div key={m.id} style={{ alignSelf: m.sender === myUsername ? "flex-end" : "flex-start", background: m.sender === myUsername ? theme.myMsgBg : theme.otherMsgBg, color: m.sender === myUsername && !isDarkMode ? "#000" : theme.text, padding: "10px 14px", borderRadius: "12px", maxWidth: "60%", position: "relative" }}>
-              <div style={{ fontSize: "11px", color: theme.accent, fontWeight: "600", marginBottom: "2px" }}>{m.sender}</div>
+            <div key={m.id} style={{ alignSelf: m.sender === myUsername ? "flex-end" : "flex-start", background: m.sender === myUsername ? theme.myMsgBg : theme.otherMsgBg, color: m.sender === myUsername && !isDarkMode ? "#111827" : theme.text, padding: "10px 14px", borderRadius: "14px", maxWidth: "60%", position: "relative", boxShadow: "0 1px 2px rgba(0,0,0,0.15)" }}>
+              <div style={{ fontSize: "12px", color: theme.accent, fontWeight: "600", marginBottom: "3px" }}>{m.sender}</div>
               {m.forwardedFrom && (<div style={{ fontSize: "11px", color: theme.textMuted, marginBottom: "4px" }}>↗️ Forwarded from {m.forwardedFrom}</div>)}
               {m.replyTo && (
-                <div style={{ background: "rgba(0,0,0,0.2)", borderLeft: "3px solid " + theme.accent, padding: "4px 8px", borderRadius: "4px", marginBottom: "6px", fontSize: "12px" }}>
+                <div style={{ background: "rgba(0,0,0,0.15)", borderLeft: "3px solid " + theme.accent, padding: "6px 10px", borderRadius: "6px", marginBottom: "6px", fontSize: "12px" }}>
                   <div style={{ color: theme.accent, fontWeight: "600" }}>{m.replyTo.sender}</div>
                   <div style={{ color: theme.textMuted }}>{m.replyTo.text}</div>
                 </div>
               )}
               {m.pollData ? (
                 <div>
-                  <div style={{ fontWeight: "600", marginBottom: "6px" }}>📊 {m.pollData.question}</div>
+                  <div style={{ fontWeight: "600", marginBottom: "8px" }}>📊 {m.pollData.question}</div>
                   {m.pollData.options && m.pollData.options.map((opt, idx) => {
                     const pct = m.pollData.totalVotes > 0 ? Math.round((opt.votes / m.pollData.totalVotes) * 100) : 0;
-                    return (<div key={idx} onClick={() => socket.emit("vote_poll", { messageId: m.id, optionIndex: idx, room: activeChat })} style={{ background: theme.inputBg, padding: "6px", borderRadius: "4px", marginBottom: "4px", cursor: "pointer" }}>{opt.text} - {pct}% ({opt.votes})</div>);
+                    return (<div key={idx} onClick={() => socket.emit("vote_poll", { messageId: m.id, optionIndex: idx, room: activeChat })} style={{ background: theme.inputBg, padding: "8px 10px", borderRadius: "8px", marginBottom: "6px", cursor: "pointer", fontSize: "13px", fontWeight: "500", border: "1px solid " + theme.border }}>{opt.text} - {pct}% ({opt.votes})</div>);
                   })}
                 </div>
-              ) : m.image ? (<img src={m.image} alt="upload" style={{ maxWidth: "100%", borderRadius: "6px", marginBottom: "4px" }} />) : m.audio ? (<audio controls src={m.audio} style={{ width: "220px" }} />) : m.fileData ? (
-                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}><span>📄</span><div><div style={{ fontSize: "13px", fontWeight: "600" }}>{m.fileName}</div><a href={m.fileData} download={m.fileName} style={{ fontSize: "11px", color: theme.textMuted }}>Download</a></div></div>
-              ) : (<div>{m.text}</div>)}
+              ) : m.image ? (<img src={m.image} alt="upload" style={{ maxWidth: "100%", borderRadius: "8px", marginBottom: "4px" }} />) : m.audio ? (<audio controls src={m.audio} style={{ width: "240px" }} />) : m.fileData ? (
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}><span style={{ fontSize: "20px" }}>📄</span><div><div style={{ fontSize: "13px", fontWeight: "600" }}>{m.fileName}</div><a href={m.fileData} download={m.fileName} style={{ fontSize: "11px", color: theme.accent, textDecoration: "none", fontWeight: "500" }}>Download File</a></div></div>
+              ) : (<div style={{ fontSize: "14px", lineHeight: "1.4", wordBreak: "break-word" }}>{m.text}</div>)}
 
-              <div style={{ display: "flex", gap: "4px", flexWrap: "wrap", marginTop: "4px" }}>
-                {m.reactions && Object.entries(m.reactions).map(([emoji, count]) => (count > 0 && (<span key={emoji} onClick={() => socket.emit("add_reaction", { messageId: m.id, emoji, room: activeChat })} style={{ fontSize: "11px", background: "rgba(0,0,0,0.3)", padding: "2px 6px", borderRadius: "10px", cursor: "pointer", color: "#fff" }}>{emoji} {count}</span>)))}
+              <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginTop: "6px" }}>
+                {m.reactions && Object.entries(m.reactions).map(([emoji, count]) => (count > 0 && (<span key={emoji} onClick={() => socket.emit("add_reaction", { messageId: m.id, emoji, room: activeChat })} style={{ fontSize: "12px", background: "rgba(0,0,0,0.25)", padding: "2px 8px", borderRadius: "12px", cursor: "pointer", color: "#fff" }}>{emoji} {count}</span>)))}
               </div>
 
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "6px", fontSize: "11px", color: theme.textMuted }}>
-                <span style={{ display: "flex", alignItems: "center", gap: "4px" }}>{m.time} {m.sender === myUsername && <span style={{ color: "#4fae4e", fontWeight: "bold" }}>✓✓</span>}</span>
-                <div style={{ display: "flex", gap: "8px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "6px", fontSize: "11px", color: theme.textMuted, gap: "15px" }}>
+                <span style={{ display: "flex", alignItems: "center", gap: "3px" }}>{m.time} {m.sender === myUsername && <span style={{ color: "#34c759", fontWeight: "bold" }}>✓✓</span>}</span>
+                <div style={{ display: "flex", gap: "10px", opacity: 0.8 }}>
                   <span onClick={() => setForwardingMessage(m)} style={{ cursor: "pointer" }} title="Forward">↗️</span>
                   <span onClick={() => socket.emit("pin_message", { messageId: m.id, pinned: m.pinned ? 0 : 1, room: activeChat })} style={{ cursor: "pointer" }} title="Pin">📌</span>
                   <span onClick={() => setReplyingTo(m)} style={{ cursor: "pointer" }} title="Reply">↩️</span>
-                  <span onClick={() => { if (window.confirm("Delete message?")) socket.emit("delete_message", { messageId: m.id, room: activeChat }); }} style={{ cursor: "pointer", color: "#ff5252" }} title="Delete">🗑️</span>
+                  <span onClick={() => { if (window.confirm("Delete message?")) socket.emit("delete_message", { messageId: m.id, room: activeChat }); }} style={{ cursor: "pointer", color: "#ff3b30" }} title="Delete">🗑️</span>
                 </div>
               </div>
-              <div style={{ display: "flex", gap: "4px", marginTop: "4px" }}>
-                {emojis.map((emoji) => (<span key={emoji} onClick={() => socket.emit("add_reaction", { messageId: m.id, emoji, room: activeChat })} style={{ cursor: "pointer", fontSize: "13px" }} title={emoji}>{emoji}</span>))}
+              <div style={{ display: "flex", gap: "6px", marginTop: "6px" }}>
+                {emojis.map((emoji) => (<span key={emoji} onClick={() => socket.emit("add_reaction", { messageId: m.id, emoji, room: activeChat })} style={{ cursor: "pointer", fontSize: "14px" }} title={emoji}>{emoji}</span>))}
               </div>
             </div>
           ))}
           <div ref={chatEndRef} />
         </div>
 
-        {image && (<div style={{ padding: "10px 15px", background: theme.panelBg, display: "flex", alignItems: "center", gap: "10px" }}><span style={{ fontSize: "13px", color: theme.textMuted }}>Image selected</span><button onClick={() => setImage(null)} style={{ background: "transparent", border: "none", color: "#ff5252", cursor: "pointer" }}>Remove</button></div>)}
-        {fileData && (<div style={{ padding: "10px 15px", background: theme.panelBg, display: "flex", alignItems: "center", gap: "10px" }}><span style={{ fontSize: "13px", color: theme.textMuted }}>File: {fileName}</span><button onClick={() => { setFileData(null); setFileName(""); }} style={{ background: "transparent", border: "none", color: "#ff5252", cursor: "pointer" }}>Remove</button></div>)}
-        {audioUrl && (<div style={{ padding: "10px 15px", background: theme.panelBg, display: "flex", alignItems: "center", gap: "10px" }}><span style={{ fontSize: "13px", color: theme.textMuted }}>Voice Note ready:</span><audio controls src={audioUrl} style={{ height: "30px" }} /><button onClick={() => setAudioUrl(null)} style={{ background: "transparent", border: "none", color: "#ff5252", cursor: "pointer" }}>Discard</button></div>)}
+        {image && (<div style={{ padding: "10px 24px", background: theme.panelBg, display: "flex", alignItems: "center", gap: "12px", borderTop: "1px solid " + theme.border }}><span style={{ fontSize: "13px", color: theme.textMuted }}>Image attached</span><button onClick={() => setImage(null)} style={{ background: "transparent", border: "none", color: "#ff3b30", cursor: "pointer", fontWeight: "600" }}>Remove</button></div>)}
+        {fileData && (<div style={{ padding: "10px 24px", background: theme.panelBg, display: "flex", alignItems: "center", gap: "12px", borderTop: "1px solid " + theme.border }}><span style={{ fontSize: "13px", color: theme.textMuted }}>File: {fileName}</span><button onClick={() => { setFileData(null); setFileName(""); }} style={{ background: "transparent", border: "none", color: "#ff3b30", cursor: "pointer", fontWeight: "600" }}>Remove</button></div>)}
+        {audioUrl && (<div style={{ padding: "10px 24px", background: theme.panelBg, display: "flex", alignItems: "center", gap: "12px", borderTop: "1px solid " + theme.border }}><span style={{ fontSize: "13px", color: theme.textMuted }}>Voice Note ready:</span><audio controls src={audioUrl} style={{ height: "30px" }} /><button onClick={() => setAudioUrl(null)} style={{ background: "transparent", border: "none", color: "#ff3b30", cursor: "pointer", fontWeight: "600" }}>Discard</button></div>)}
 
         {replyingTo && (
-          <div style={{ padding: "8px 15px", background: theme.panelBg, borderTop: "1px solid " + theme.border, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div style={{ fontSize: "12px" }}><span style={{ color: theme.accent, fontWeight: "600" }}>Replying to {replyingTo.sender}: </span><span style={{ color: theme.textMuted }}>{replyingTo.text || replyingTo.fileName || "Attachment"}</span></div>
-            <button onClick={() => setReplyingTo(null)} style={{ background: "transparent", border: "none", color: "#ff5252", cursor: "pointer", fontSize: "14px" }}>✕</button>
+          <div style={{ padding: "10px 24px", background: theme.panelBg, borderTop: "1px solid " + theme.border, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ fontSize: "13px" }}><span style={{ color: theme.accent, fontWeight: "600" }}>Replying to {replyingTo.sender}: </span><span style={{ color: theme.textMuted }}>{replyingTo.text || replyingTo.fileName || "Attachment"}</span></div>
+            <button onClick={() => setReplyingTo(null)} style={{ background: "transparent", border: "none", color: "#ff3b30", cursor: "pointer", fontSize: "16px", fontWeight: "bold" }}>✕</button>
           </div>
         )}
 
         {showPollModal && (
-          <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", background: "rgba(0,0,0,0.7)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <form onSubmit={createPoll} style={{ background: theme.panelBg, padding: "20px", borderRadius: "8px", width: "300px" }}>
-              <input type="text" placeholder="Question" value={pollQuestion} onChange={(e) => setPollQuestion(e.target.value)} style={{ width: "100%", padding: "8px", marginBottom: "10px", background: theme.inputBg, color: theme.text, border: "none", outline: "none" }} />
-              {pollOptions.map((opt, idx) => (<input key={idx} type="text" placeholder={"Option " + (idx + 1)} value={opt} onChange={(e) => { const n = [...pollOptions]; n[idx] = e.target.value; setPollOptions(n); }} style={{ width: "100%", padding: "6px", marginBottom: "6px", background: theme.inputBg, color: theme.text, border: "none", outline: "none" }} />))}
-              <button type="submit" style={{ width: "100%", padding: "8px", background: theme.accent, color: "#fff", border: "none", cursor: "pointer" }}>Publish</button>
-              <button type="button" onClick={() => setShowPollModal(false)} style={{ width: "100%", padding: "8px", background: "#ff5252", color: "#fff", border: "none", cursor: "pointer", marginTop: "6px" }}>Cancel</button>
+          <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", background: "rgba(0,0,0,0.6)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(4px)" }}>
+            <form onSubmit={createPoll} style={{ background: theme.panelBg, padding: "28px", borderRadius: "16px", width: "340px", border: "1px solid " + theme.border, boxShadow: "0 12px 40px rgba(0,0,0,0.4)" }}>
+              <div style={{ fontSize: "18px", fontWeight: "600", marginBottom: "16px", color: theme.accent }}>📊 Create a Poll</div>
+              <input type="text" placeholder="Ask a question..." value={pollQuestion} onChange={(e) => setPollQuestion(e.target.value)} style={{ width: "100%", padding: "12px 14px", background: theme.inputBg, border: "1px solid " + theme.border, borderRadius: "10px", color: theme.text, marginBottom: "12px", outline: "none", fontSize: "14px" }} />
+              {pollOptions.map((opt, idx) => (<input key={idx} type="text" placeholder={"Option " + (idx + 1)} value={opt} onChange={(e) => { const n = [...pollOptions]; n[idx] = e.target.value; setPollOptions(n); }} style={{ width: "100%", padding: "10px 14px", background: theme.inputBg, border: "1px solid " + theme.border, borderRadius: "10px", color: theme.text, marginBottom: "8px", outline: "none", fontSize: "14px" }} />))}
+              <button type="submit" style={{ width: "100%", padding: "12px", background: theme.accent, color: "#fff", border: "none", borderRadius: "10px", cursor: "pointer", fontWeight: "600", marginTop: "10px", fontSize: "14px", boxShadow: "0 4px 12px rgba(82,136,193,0.3)" }}>Publish Poll</button>
+              <button type="button" onClick={() => setShowPollModal(false)} style={{ width: "100%", padding: "12px", background: "transparent", border: "1px solid " + theme.border, borderRadius: "10px", color: "#ff3b30", fontWeight: "600", cursor: "pointer", marginTop: "8px", fontSize: "14px" }}>Cancel</button>
             </form>
           </div>
         )}
 
-        <form onSubmit={handleSend} style={{ padding: "15px", background: theme.panelBg, borderTop: "1px solid " + theme.border, display: "flex", gap: "10px", alignItems: "center" }}>
+        {/* Input Bar */}
+        <form onSubmit={handleSend} style={{ padding: "14px 24px", background: theme.panelBg, borderTop: "1px solid " + theme.border, display: "flex", gap: "12px", alignItems: "center" }}>
           <label style={{ cursor: "pointer", fontSize: "20px", color: theme.textMuted }} title="Attach Image">📎<input type="file" accept="image/*" onChange={(e) => { const f = e.target.files[0]; if(f){ const r = new FileReader(); r.onloadend = () => setImage(r.result); r.readAsDataURL(f); } }} style={{ display: "none" }} /></label>
           <label style={{ cursor: "pointer", fontSize: "20px", color: theme.textMuted }} title="Attach File">📁<input type="file" onChange={(e)=>{ const f = e.target.files[0]; if(f){ setFileName(f.name); const r = new FileReader(); r.onloadend = () => setFileData(r.result); r.readAsDataURL(f); } }} style={{ display: "none" }} /></label>
-          {isRecording ? (<button type="button" onClick={stopRecording} style={{ background: "#ff5252", border: "none", borderRadius: "50%", width: "40px", height: "40px", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }} title="Stop Recording">⏹️</button>) : (<button type="button" onClick={startRecording} style={{ background: theme.inputBg, border: "none", borderRadius: "50%", width: "40px", height: "40px", color: theme.text, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }} title="Record Voice Note">🎤</button>)}
-          <input type="text" placeholder="Write a message..." value={text} onChange={handleTextChange} style={{ flex: 1, padding: "10px", background: theme.inputBg, border: "none", borderRadius: "8px", color: theme.text, outline: "none" }} />
-          <button type="submit" style={{ padding: "0 20px", background: theme.accent, border: "none", borderRadius: "8px", color: "#fff", cursor: "pointer" }}>Send</button>
+          {isRecording ? (<button type="button" onClick={stopRecording} style={{ background: "#ff3b30", border: "none", borderRadius: "50%", width: "40px", height: "40px", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }} title="Stop Recording">⏹️</button>) : (<button type="button" onClick={startRecording} style={{ background: theme.inputBg, border: "none", borderRadius: "50%", width: "40px", height: "40px", color: theme.text, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }} title="Record Voice Note">🎤</button>)}
+          <input type="text" placeholder="Write a message..." value={text} onChange={handleTextChange} style={{ flex: 1, padding: "12px 18px", background: theme.inputBg, border: "none", borderRadius: "24px", color: theme.text, outline: "none", fontSize: "14px" }} />
+          <button type="submit" style={{ padding: "10px 24px", background: theme.accent, border: "none", borderRadius: "24px", color: "#fff", cursor: "pointer", fontWeight: "600", fontSize: "14px", boxShadow: "0 2px 8px rgba(82,136,193,0.3)" }}>Send</button>
         </form>
       </div>
     </div>
