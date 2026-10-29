@@ -71,7 +71,7 @@ export default function Telegram() {
     if (!text.trim() && !image && !audioUrl && !fileData) return;
     socket.emit("stop_typing", { room: activeChat });
     socket.emit("send_message", {
-      id: Date.now().toString(), sender: myUsername, text: text.trim() || null, image, audio: audioUrl, fileData, fileName, pinned: 0, reactions: {},
+      id: Date.now().toString(), sender: myUsername, text: text.trim() || null, image, audio: audioUrl, fileData, fileName, pinned: 0, reactions: {}, seen: true,
       replyTo: replyingTo ? { text: replyingTo.text || replyingTo.fileName || "Attachment", sender: replyingTo.sender } : null,
       time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }), room: activeChat
     });
@@ -84,7 +84,7 @@ export default function Telegram() {
     socket.emit("send_message", {
       id: Date.now().toString(), sender: myUsername, text: "📊 Poll",
       pollData: { question: pollQuestion.trim(), options: pollOptions.filter(o => o.trim()).map(t => ({ text: t, votes: 0 })), totalVotes: 0 },
-      pinned: 0, reactions: {}, time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }), room: activeChat
+      pinned: 0, reactions: {}, seen: true, time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }), room: activeChat
     });
     setPollQuestion(""); setPollOptions(["", ""]); setShowPollModal(false);
   };
@@ -94,7 +94,7 @@ export default function Telegram() {
     socket.emit("send_message", {
       id: Date.now().toString(), sender: myUsername, text: forwardingMessage.text, image: forwardingMessage.image, audio: forwardingMessage.audio,
       fileData: forwardingMessage.fileData, fileName: forwardingMessage.fileName, pollData: forwardingMessage.pollData, forwardedFrom: forwardingMessage.sender,
-      pinned: 0, reactions: {}, time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }), room: targetRoom
+      pinned: 0, reactions: {}, seen: true, time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }), room: targetRoom
     });
     setForwardingMessage(null); setActiveChat(targetRoom);
   };
@@ -184,7 +184,7 @@ export default function Telegram() {
               </div>
 
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "6px", fontSize: "11px", color: "#a2b5c7" }}>
-                <span>{m.time}</span>
+                <span style={{ display: "flex", alignItems: "center", gap: "4px" }}>{m.time} {m.sender === myUsername && <span style={{ color: "#4fae4e", fontWeight: "bold" }}>✓✓</span>}</span>
                 <div style={{ display: "flex", gap: "8px" }}>
                   <span onClick={() => setForwardingMessage(m)} style={{ cursor: "pointer" }} title="Forward">↗️</span>
                   <span onClick={() => socket.emit("pin_message", { messageId: m.id, pinned: m.pinned ? 0 : 1, room: activeChat })} style={{ cursor: "pointer" }} title="Pin">📌</span>
