@@ -24,16 +24,16 @@ export default function Telegram() {
   const emojis = ["👍", "❤️", "🔥", "😂", "👏"];
 
   useEffect(() => {
-    socket.emit("join_room", activeChat);
+    socket.emit("join_room", activeChat || "Saved Messages");
     setTypingUser(""); setReplyingTo(null); setForwardingMessage(null);
-    socket.on("load_history", (h) => setMessages(h));
-    socket.on("receive_message", (d) => { if (d.room === activeChat) setMessages((p) => [...p, d]); });
-    socket.on("update_poll", (d) => { setMessages((p) => p.map((m) => m.id === d.messageId ? { ...m, pollData: d.pollData } : m)); });
-    socket.on("update_pin", (d) => { setMessages((p) => p.map((m) => m.id === d.messageId ? { ...m, pinned: d.pinned } : m)); });
-    socket.on("update_reaction", (d) => { setMessages((p) => p.map((m) => m.id === d.messageId ? { ...m, reactions: d.reactions } : m)); });
-    socket.on("remove_message", (d) => { setMessages((p) => p.filter((m) => m.id !== d.messageId)); });
-    socket.on("display_typing", (d) => { if (d.room === activeChat) setTypingUser("Someone is typing..."); });
-    socket.on("hide_typing", (d) => { if (d.room === activeChat) setTypingUser(""); });
+    socket.on("load_history", (h) => setMessages(h || []));
+    socket.on("receive_message", (d) => { if (d && d.room === activeChat) setMessages((p) => [...p, d]); });
+    socket.on("update_poll", (d) => { if(d) setMessages((p) => p.map((m) => m.id === d.messageId ? { ...m, pollData: d.pollData } : m)); });
+    socket.on("update_pin", (d) => { if(d) setMessages((p) => p.map((m) => m.id === d.messageId ? { ...m, pinned: d.pinned } : m)); });
+    socket.on("update_reaction", (d) => { if(d) setMessages((p) => p.map((m) => m.id === d.messageId ? { ...m, reactions: d.reactions } : m)); });
+    socket.on("remove_message", (d) => { if(d) setMessages((p) => p.filter((m) => m.id !== d.messageId)); });
+    socket.on("display_typing", (d) => { if (d && d.room === activeChat) setTypingUser("Someone is typing..."); });
+    socket.on("hide_typing", (d) => { if (d && d.room === activeChat) setTypingUser(""); });
     return () => { socket.off("load_history"); socket.off("receive_message"); socket.off("update_poll"); socket.off("update_pin"); socket.off("update_reaction"); socket.off("remove_message"); socket.off("display_typing"); socket.off("hide_typing"); };
   }, [activeChat]);
 
@@ -96,7 +96,7 @@ export default function Telegram() {
     setForwardingMessage(null); setActiveChat(targetRoom);
   };
 
-  const pinnedMessage = messages.find((m) => m.pinned === 1);
+  const pinnedMessage = messages && messages.find ? messages.find((m) => m && m.pinned === 1) : null;
 
   return (
     <div style={{ display: "flex", height: "100vh", backgroundColor: "#0e1621", color: "#fff", fontFamily: "sans-serif", position: "relative" }}>
@@ -135,7 +135,7 @@ export default function Telegram() {
           </div>
         )}
         <div style={{ flex: 1, padding: "20px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "12px" }}>
-          {messages.map((m) => (
+          {messages && messages.map && messages.map((m) => (
             <div key={m.id} style={{ alignSelf: "flex-end", background: "#2b5278", padding: "10px 14px", borderRadius: "12px", maxWidth: "60%", position: "relative" }}>
               {m.forwardedFrom && (<div style={{ fontSize: "11px", color: "#5288c1", fontWeight: "600", marginBottom: "4px" }}>↗️ Forwarded from {m.forwardedFrom}</div>)}
               {m.replyTo && (
@@ -147,7 +147,7 @@ export default function Telegram() {
               {m.pollData ? (
                 <div>
                   <div style={{ fontWeight: "600", marginBottom: "6px" }}>📊 {m.pollData.question}</div>
-                  {m.pollData.options.map((opt, idx) => {
+                  {m.pollData.options && m.pollData.options.map((opt, idx) => {
                     const pct = m.pollData.totalVotes > 0 ? Math.round((opt.votes / m.pollData.totalVotes) * 100) : 0;
                     return (<div key={idx} onClick={() => socket.emit("vote_poll", { messageId: m.id, optionIndex: idx, room: activeChat })} style={{ background: "#242f3d", padding: "6px", borderRadius: "4px", marginBottom: "4px", cursor: "pointer" }}>{opt.text} - {pct}% ({opt.votes})</div>);
                   })}
@@ -195,7 +195,7 @@ export default function Telegram() {
         )}
         <form onSubmit={handleSend} style={{ padding: "15px", background: "#17212b", display: "flex", gap: "10px", alignItems: "center" }}>
           <label style={{ cursor: "pointer", fontSize: "20px", color: "#a2b5c7" }} title="Attach Image">📎<input type="file" accept="image/*" onChange={(e) => { const f = e.target.files[0]; if(f){ const r = new FileReader(); r.onloadend = () => setImage(r.result); r.readAsDataURL(f); } }} style={{ display: "none" }} /></label>
-          <label style={{ cursor: "pointer", fontSize: "20px", color: "#a2b5c7" }} title="Attach File">📁<input type="file" onChange={handleFileChange} style={{ display: "none" }} /></label>
+          <label style={{ cursor: "pointer", fontSize: "20px", color: "#a2b5c7" }} title="Attach File">📁<input type="file" onChange={(e)=>{ const f = e.target.files[0]; if(f){ setFileName(f.name); const r = new FileReader(); r.onloadend = () => setFileData(r.result); r.readAsDataURL(f); } }} style={{ display: "none" }} /></label>
           {isRecording ? (<button type="button" onClick={stopRecording} style={{ background: "#ff5252", border: "none", borderRadius: "50%", width: "40px", height: "40px", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }} title="Stop Recording">⏹️</button>) : (<button type="button" onClick={startRecording} style={{ background: "#242f3d", border: "none", borderRadius: "50%", width: "40px", height: "40px", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }} title="Record Voice Note">🎤</button>)}
           <input type="text" placeholder="Write a message..." value={text} onChange={handleTextChange} style={{ flex: 1, padding: "10px", background: "#242f3d", border: "none", borderRadius: "8px", color: "#fff", outline: "none" }} />
           <button type="submit" style={{ padding: "0 20px", background: "#5288c1", border: "none", borderRadius: "8px", color: "#fff", cursor: "pointer" }}>Send</button>
