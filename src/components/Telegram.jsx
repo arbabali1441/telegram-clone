@@ -107,8 +107,15 @@ export default function Telegram() {
         <div style={{ position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh", background: "rgba(0,0,0,0.7)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div style={{ background: "#17212b", padding: "25px", borderRadius: "12px", width: "320px", border: "1px solid #242f3d" }}>
             <div style={{ fontSize: "16px", fontWeight: "600", marginBottom: "15px", color: "#5288c1" }}>👤 Profile Settings</div>
-            <div style={{ marginBottom: "12px", fontSize: "13px", color: "#a2b5c7" }}>Display Name</div>
+            <div style={{ marginBottom: "8px", fontSize: "13px", color: "#a2b5c7" }}>Display Name</div>
             <input type="text" value={myUsername} onChange={(e) => setMyUsername(e.target.value)} style={{ width: "100%", padding: "10px", background: "#242f3d", border: "none", borderRadius: "8px", color: "#fff", marginBottom: "15px", outline: "none" }} />
+            <div style={{ marginBottom: "8px", fontSize: "13px", color: "#a2b5c7" }}>Status</div>
+            <select value={userStatus} onChange={(e) => setUserStatus(e.target.value)} style={{ width: "100%", padding: "10px", background: "#242f3d", border: "none", borderRadius: "8px", color: "#fff", marginBottom: "20px", outline: "none" }}>
+              <option value="Online">Online</option>
+              <option value="Busy">Busy</option>
+              <option value="Away">Away</option>
+              <option value="Offline">Offline</option>
+            </select>
             <button onClick={() => setShowProfileModal(false)} style={{ width: "100%", padding: "10px", background: "#5288c1", border: "none", borderRadius: "8px", color: "#fff", fontWeight: "600", cursor: "pointer" }}>Save Profile</button>
           </div>
         </div>
@@ -128,7 +135,10 @@ export default function Telegram() {
 
       <div style={{ width: "300px", borderRight: "1px solid #17212b", background: "#17212b", display: "flex", flexDirection: "column" }}>
         <div style={{ padding: "15px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #242f3d" }}>
-          <div style={{ fontWeight: "600", fontSize: "15px" }}>Telegram Web</div>
+          <div>
+            <div style={{ fontWeight: "600", fontSize: "15px" }}>{myUsername}</div>
+            <div style={{ fontSize: "11px", color: "#4fae4e" }}>● {userStatus}</div>
+          </div>
           <button onClick={() => setShowProfileModal(true)} style={{ background: "#242f3d", border: "none", padding: "6px 10px", borderRadius: "6px", color: "#fff", cursor: "pointer", fontSize: "12px" }}>⚙️ Settings</button>
         </div>
         <div style={{ padding: "12px 15px" }}><input type="text" placeholder="Search rooms..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} style={{ width: "100%", padding: "10px", background: "#242f3d", border: "none", borderRadius: "8px", color: "#fff", outline: "none" }} /></div>
@@ -141,7 +151,7 @@ export default function Telegram() {
         <div style={{ padding: "15px", background: "#17212b", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
             <div style={{ fontWeight: "600" }}>{activeChat === "Saved Messages" ? "⭐ Saved Messages (Cloud Storage)" : activeChat}</div>
-            <div style={{ fontSize: "12px", color: "#6c7883" }}>{typingUser || userStatus}</div>
+            <div style={{ fontSize: "12px", color: "#6c7883" }}>{typingUser || "active chat"}</div>
           </div>
           <button onClick={() => setShowPollModal(true)} style={{ background: "#5288c1", border: "none", padding: "6px 12px", borderRadius: "6px", color: "#fff", cursor: "pointer" }}>Create Poll</button>
         </div>
