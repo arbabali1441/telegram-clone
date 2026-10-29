@@ -1,1 +1,117 @@
-const express=require("express");const http=require("http");const {Server}=require("socket.io");const cors=require("cors");const sqlite3=require("sqlite3").verbose();const app=express();app.use(cors({limit:"50mb"}));app.use(express.json({limit:"50mb"}));const server=http.createServer(app);const io=new Server(server,{cors:{origin:"*"}});const db=new sqlite3.Database("./chat.db",(err)=>{if(!err)console.log("Connected to SQLite database.");});db.run(`CREATE TABLE IF NOT EXISTS messages (id TEXT PRIMARY KEY, sender TEXT, text TEXT, image TEXT, audio TEXT, fileData TEXT, fileName TEXT, pollData TEXT, reactions TEXT, replyTo TEXT, forwardedFrom TEXT, pinned INTEGER DEFAULT 0, edited INTEGER DEFAULT 0, status TEXT, time TEXT, room TEXT)`,(err)=>{if(!err){db.all("PRAGMA table_info(messages)",(e,cols)=>{if(!cols.some(c=>c.name==="pollData")){db.run("ALTER TABLE messages ADD COLUMN pollData TEXT");}if(!cols.some(c=>c.name==="forwardedFrom")){db.run("ALTER TABLE messages ADD COLUMN forwardedFrom TEXT");}if(!cols.some(c=>c.name==="fileData")){db.run("ALTER TABLE messages ADD COLUMN fileData TEXT");}if(!cols.some(c=>c.name==="fileName")){db.run("ALTER TABLE messages ADD COLUMN fileName TEXT");}if(!cols.some(c=>c.name==="edited")){db.run("ALTER TABLE messages ADD COLUMN edited INTEGER DEFAULT 0");}if(!cols.some(c=>c.name==="pinned")){db.run("ALTER TABLE messages ADD COLUMN pinned INTEGER DEFAULT 0");}if(!cols.some(c=>c.name==="replyTo")){db.run("ALTER TABLE messages ADD COLUMN replyTo TEXT");}if(!cols.some(c=>c.name==="status")){db.run("ALTER TABLE messages ADD COLUMN status TEXT DEFAULT 'sent'");}});}});io.on("connection",(socket)=>{console.log("User connected:",socket.id);socket.on("join_room",(room)=>{socket.join(room);db.all("SELECT * FROM messages WHERE room = ? ORDER BY id ASC",[room],(err,rows)=>{if(!err){const parsedRows=rows.map(r=>({...r,reactions:r.reactions?JSON.parse(r.reactions):{},pollData:r.pollData?JSON.parse(r.pollData):null,replyTo:r.replyTo?JSON.parse(r.replyTo):null,status:r.status||"read",pinned:r.pinned||0,edited:r.edited||0}));socket.emit("load_history",parsedRows);}});});socket.on("send_message",(data)=>{const initialReactions={};const initialStatus="sent";const replyToJSON=data.replyTo?JSON.stringify(data.replyTo):null;const pollDataJSON=data.pollData?JSON.stringify(data.pollData):null;db.run(`INSERT INTO messages(id, sender, text, image, audio, fileData, fileName, pollData, reactions, replyTo, forwardedFrom, pinned, edited, status, time, room) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,[data.id,data.sender,data.text,data.image||null,data.audio||null,data.fileData||null,data.fileName||null,pollDataJSON,JSON.stringify(initialReactions),replyToJSON,data.forwardedFrom||null,0,0,initialStatus,data.time,data.room],(err)=>{if(!err){io.to(data.room).emit("receive_message",{...data,reactions:initialReactions,pollData:data.pollData||null,pinned:0,edited:0,status:initialStatus});setTimeout(()=>{db.run("UPDATE messages SET status = 'read' WHERE id = ?",[data.id],()=>{io.to(data.room).emit("update_status",{messageId:data.id,status:"read"});});},1000);}});});socket.on("vote_poll",(data)=>{db.get("SELECT pollData FROM messages WHERE id = ?",[data.messageId],(err,row)=>{if(!err&&row&&row.pollData){let poll=JSON.parse(row.pollData);if(poll&&poll.options[data.optionIndex]){poll.options[data.optionIndex].votes=(poll.options[data.optionIndex].votes||0)+1;poll.totalVotes=(poll.totalVotes||0)+1;db.run("UPDATE messages SET pollData = ? WHERE id = ?",[JSON.stringify(poll),data.messageId],(err)=>{if(!err){io.to(data.room).emit("update_poll",{messageId:data.messageId,pollData:poll});}});}}});});socket.on("edit_message",(data)=>{db.run("UPDATE messages SET text = ?, edited = 1 WHERE id = ?",[data.text,data.messageId],(err)=>{if(!err){io.to(data.room).emit("update_message_text",{messageId:data.messageId,text:data.text});}});});socket.on("delete_message",(data)=>{db.run("DELETE FROM messages WHERE id = ?",[data.messageId],(err)=>{if(!err){io.to(data.room).emit("remove_message",{messageId:data.messageId});}});});socket.on("pin_message",(data)=>{db.run("UPDATE messages SET pinned = ? WHERE id = ?",[data.pinned?1:0,data.messageId],(err)=>{if(!err){io.to(data.room).emit("update_pin",{messageId:data.messageId,pinned:data.pinned});}});});socket.on("add_reaction",(data)=>{db.get("SELECT reactions FROM messages WHERE id = ?",[data.messageId],(err,row)=>{if(!row)return;let reactions=row.reactions?JSON.parse(row.reactions):{};reactions[data.emoji]=(reactions[data.emoji]||0)+1;db.run("UPDATE messages SET reactions = ? WHERE id = ?",[JSON.stringify(reactions),data.messageId],(err)=>{if(!err){io.to(data.room).emit("update_reaction",{messageId:data.messageId,reactions});}});});});socket.on("typing",(data)=>{socket.to(data.room).emit("display_typing",data);});socket.on("stop_typing",(data)=>{socket.to(data.room).emit("hide_typing",data);});socket.on("disconnect",()=>{console.log("User disconnected");});});server.listen(5000,()=>console.log("Server running on port 5000"));
+const express = require("http");
+const http = require("http");
+const { Server } = require("socket.io");
+const sqlite3 = require('sqlite3').verbose();
+const cors = require("cors");
+
+const app = express();
+app.use(cors());
+app.use(express.json({ limit: '50mb' }));
+
+const server = http.createServer(app);
+const io = new Server(server, { cors: { origin: "*" } });
+
+// Initialize SQLite Database
+const db = new sqlite3.Database('./telegram.db', (err) => {
+  if (err) console.error('Database opening error: ', err.message);
+  else console.log('Connected to SQLite Database.');
+});
+
+db.run(`CREATE TABLE IF NOT EXISTS messages (
+  id TEXT PRIMARY KEY,
+  room TEXT,
+  sender TEXT,
+  text TEXT,
+  image TEXT,
+  audio TEXT,
+  fileData TEXT,
+  fileName TEXT,
+  pinned INTEGER,
+  reactions TEXT,
+  replyTo TEXT,
+  forwardedFrom TEXT,
+  pollData TEXT,
+  time TEXT
+)`);
+
+io.on("connection", (socket) => {
+  console.log("User connected:", socket.id);
+
+  socket.on("join_room", (room) => {
+    socket.join(room);
+    db.all(`SELECT * FROM messages WHERE room = ?`, [room], (err, rows) => {
+      if (!err) {
+        const history = rows.map(r => ({
+          ...r,
+          reactions: r.reactions ? JSON.parse(r.reactions) : {},
+          replyTo: r.replyTo ? JSON.parse(r.replyTo) : null,
+          pollData: r.pollData ? JSON.parse(r.pollData) : null
+        }));
+        socket.emit("load_history", history);
+      }
+    });
+  });
+
+  socket.on("send_message", (data) => {
+    const { id, room, sender, text, image, audio, fileData, fileName, pinned, reactions, replyTo, forwardedFrom, pollData, time } = data;
+    const stmt = db.prepare(`INSERT OR REPLACE INTO messages VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
+    stmt.run(id, room, sender, text, image, audio, fileData, fileName, pinned, JSON.stringify(reactions || {}), JSON.stringify(replyTo || null), forwardedFrom || null, JSON.stringify(pollData || null), time, (err) => {
+      if (!err) io.to(room).emit("receive_message", data);
+    });
+    stmt.finalize();
+  });
+
+  socket.on("vote_poll", ({ messageId, optionIndex, room }) => {
+    db.get(`SELECT pollData FROM messages WHERE id = ?`, [messageId], (err, row) => {
+      if (!err && row && row.pollData) {
+        let pData = JSON.parse(row.pollData);
+        if (pData && pData.options && pData.options[optionIndex]) {
+          pData.options[optionIndex].votes += 1;
+          pData.totalVotes = (pData.totalVotes || 0) + 1;
+          db.run(`UPDATE messages SET pollData = ? WHERE id = ?`, [JSON.stringify(pData), messageId], (err2) => {
+            if (!err2) io.to(room).emit("update_poll", { messageId, pollData: pData });
+          });
+        }
+      }
+    });
+  });
+
+  socket.on("pin_message", ({ messageId, pinned, room }) => {
+    if (pinned === 0) {
+      db.run(`UPDATE messages SET pinned = 0 WHERE room = ?`, [room], () => {
+        io.to(room).emit("update_pin", { messageId, pinned: 0 });
+      });
+    } else {
+      db.run(`UPDATE messages SET pinned = 0 WHERE room = ?`, [room], () => {
+        db.run(`UPDATE messages SET pinned = 1 WHERE id = ?`, [messageId], () => {
+          io.to(room).emit("update_pin", { messageId, pinned: 1 });
+        });
+      });
+    }
+  });
+
+  socket.on("add_reaction", ({ messageId, emoji, room }) => {
+    db.get(`SELECT reactions FROM messages WHERE id = ?`, [messageId], (err, row) => {
+      if (!err && row) {
+        let rxn = row.reactions ? JSON.parse(row.reactions) : {};
+        rxn[emoji] = (rxn[emoji] || 0) + 1;
+        db.run(`UPDATE messages SET reactions = ? WHERE id = ?`, [JSON.stringify(rxn), messageId], (err2) => {
+          if (!err2) io.to(room).emit("update_reaction", { messageId, reactions: rxn });
+        });
+      }
+    });
+  });
+
+  socket.on("delete_message", ({ messageId, room }) => {
+    db.run(`DELETE FROM messages WHERE id = ?`, [messageId], (err) => {
+      if (!err) io.to(room).emit("remove_message", { messageId });
+    });
+  });
+
+  socket.on("typing", ({ room }) => socket.to(room).emit("display_typing", { room }));
+  socket.on("stop_typing", ({ room }) => socket.to(room).emit("hide_typing", { room }));
+
+  socket.on("disconnect", () => console.log("User disconnected:", socket.id));
+});
+
+server.listen(5000, () => console.log("Server running on port 5000 with SQLite storage."));
