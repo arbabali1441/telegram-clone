@@ -1,68 +1,108 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app), using the [Redux](https://redux.js.org/) and [Redux Toolkit](https://redux-toolkit.js.org/) template.
+<div align="center">
 
-## Available Scripts
+# 🚀 Telegram Web Clone (Pro Edition)
 
-In the project directory, you can run:
+<img src="https://user-images.githubusercontent.com/74038190/212284115-f47cd8ff-b7ef-4f15-b707-86541f710f73.gif" width="100">
 
-### `yarn start`
+[![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactjs.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
+[![Socket.io](https://img.shields.io/badge/Socket.io-010101?style=for-the-badge&logo=socket.io&logoColor=white)](https://socket.io/)
+[![SQLite](https://img.shields.io/badge/SQLite-07405E?style=for-the-badge&logo=sqlite&logoColor=white)](https://www.sqlite.org/)
 
-Runs the app in the development mode.<br />
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+*A high-performance, real-time, and modern Telegram Web (Z-Version) clone built with enterprise-level architecture and sleek UI/UX.*
 
-The page will reload if you make edits.<br />
-You will also see any lint errors in the console.
+</div>
 
-### `yarn test`
+---
 
-Launches the test runner in the interactive watch mode.<br />
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### 📺 Live Project Video Demo
 
-### `yarn build`
+[![Telegram Web Clone Demo](https://img.youtube.com/vi/5vRhr4sikyM/maxresdefault.jpg)](https://youtu.be/5vRhr4sikyM "Watch Telegram Web Clone Demo")
 
-Builds the app for production to the `build` folder.<br />
-It correctly bundles React in production mode and optimizes the build for the best performance.
+> 💡 **Click the image above** to watch the full HD video demonstration of real-time messaging, voice notes, polls, and SQLite features in action!
 
-The build is minified and the filenames include the hashes.<br />
-Your app is ready to be deployed!
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## 📸 App Screenshots Preview
 
-### `yarn eject`
+### 1. Authentication / Login Screen
+<div align="center">
+  <img width="517" height="640" alt="Screenshot from 2026-10-29 14-40-51" src="https://github.com/user-attachments/assets/2eb6ce9b-21f3-419c-85e4-d0ab30b20689" />
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+</div>
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### 2. Main Workspace & Chat Dashboard
+<div align="center">
+  <img width="1366" height="768" alt="Screenshot from 2026-10-29 14-56-09" src="https://github.com/user-attachments/assets/8769203d-3a42-4eea-8166-1aedeed5b932" />
+</div>
 
-Instead, it will copy all the configuration files and the transitive dependencies (Webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+---
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+## ✨ Key Features & Capabilities
 
-## Learn More
+| Feature Category | Pro Implementation Details | Status |
+| :--- | :--- | :--- |
+| **Real-Time Messaging** | Instant bi-directional messaging powered by Socket.IO and permanent SQLite storage. | ✅ Completed |
+| **Rich Media & Files** | Image preview, document sharing with download links, and voice note recording (`MediaRecorder API`). | ✅ Completed |
+| **Interactive Polls** | Live voting mechanism with dynamic percentage breakdown and real-time state synchronization. | ✅ Completed |
+| **Message Management** | Pin/Unpin banners, emoji reactions, reply quotes, forwarding, and secure message deletion. | ✅ Completed |
+| **Pro UI / UX Design** | Authentic Telegram Desktop SVG vector icons, smooth Dark/Light theme toggles, and live typing indicators. | ✅ Completed |
+| **Voice & Video Calls** | Integrated mock/peer connection call interfaces with immersive overlay backdrops. | ✅ Completed |
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+---
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## 🛠️ Tech Stack & Architecture Blueprint
 
-### Code Splitting
+- **Frontend (Client)**: React.js, Vite, Modular Styling, Socket.IO Client
+- **Backend (Server)**: Node.js, Express, Socket.IO Server Engine
+- **Database Layer**: SQLite3 Relational Database (Persistent Message Store)
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/code-splitting
+---
 
-### Analyzing the Bundle Size
+## 📂 Project Structure
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size
+- `server/index.js`: Express & Socket.IO server + SQLite persistence handlers
+- `server/telegram.db`: Local persistent database file
+- `src/components/Telegram.jsx`: High-performance core client interface
+- `src/App.jsx`: Root wrapper component
+- `src/main.jsx`: Vite entry point
+- `package.json`: Dependency configurations
+- `README.md`: Project documentation
 
-### Making a Progressive Web App
+---
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app
+## 🚀 Getting Started Locally
 
-### Advanced Configuration
+To run this project locally, follow these steps:
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/advanced-configuration
+1. **Clone the Repository:**
+   ```bash
+   git clone [https://github.com/your-username/telegram-web-clone.git](https://github.com/your-username/telegram-web-clone.git)
+   cd telegram-web-clone
+   
+2. **Install Dependencies:**
+   ```bash
+    npm install
+    
+3.**Start Server and Frontend Simultaneously:**
+   ```bash
+  node server/index.js & npm start
+  ```
 
-### Deployment
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/deployment
 
-### `yarn build` fails to minify
+**🗺️ Development Roadmap**
+```
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+Phase 1: Core chat rooms and WebSocket integration.
+
+Phase 2: SQLite persistence layer & pro SVG icons upgrade.
+
+Phase 3: True WebRTC peer-to-peer secure audio/video streams using STUN/TURN servers.
+
+Phase 4: JWT Authentication and multi-user private 1-on-1 secret chats.
+```
+
+
+🤝 Support & Contact
+```
+If you have any questions or suggestions, feel free to connect with me on GitHub and drop a direct message!
